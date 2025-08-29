@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Turmas e Alunos</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button, select {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    .turma {
+      margin-top: 20px;
+      padding: 10px;
+      background: #eef;
+      border-radius: 6px;
+    }
+    .aluno {
+      margin-left: 20px;
+    }
+    pre {
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastro de Turmas e Alunos</h1>
+
+    <h3>Nova Turma</h3>
+    <input type="text" id="turmaNome" placeholder="Nome da Turma" />
+    <input type="text" id="turmaID" placeholder="ID da Turma" />
+    <button onclick="adicionarTurma()">Adicionar Turma</button>
+
+    <h3>Adicionar Aluno</h3>
+    <select id="turmaSelect"></select>
+    <input type="text" id="alunoNome" placeholder="Nome do Aluno" />
+    <input type="text" id="alunoID" placeholder="ID do Aluno" />
+    <button onclick="adicionarAluno()">Adicionar Aluno</button>
+
+    <h3>Dados JSON</h3>
+    <pre id="jsonOutput">{}</pre>
+  </div>
+
+  <script>
+    const bancoDeDados = {
+      turmas: []
+    };
+
+    function atualizarSelect() {
+      const select = document.getElementById("turmaSelect");
+      select.innerHTML = "";
+      bancoDeDados.turmas.forEach((turma, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = `${turma.nome} (${turma.id})`;
+        select.appendChild(option);
+      });
+    }
+
+    function adicionarTurma() {
+      const nome = document.getElementById("turmaNome").value.trim();
+      const id = document.getElementById("turmaID").value.trim();
+      if (!nome || !id) return alert("Preencha todos os campos da turma.");
+
+      bancoDeDados.turmas.push({ nome, id, alunos: [] });
+      document.getElementById("turmaNome").value = "";
+      document.getElementById("turmaID").value = "";
+      atualizarSelect();
+      atualizarJSON();
+    }
+
+    function adicionarAluno() {
+      const index = document.getElementById("turmaSelect").value;
+      const nome = document.getElementById("alunoNome").value.trim();
+      const id = document.getElementById("alunoID").value.trim();
+      if (!nome || !id || index === "") return alert("Preencha todos os campos do aluno.");
+
+      bancoDeDados.turmas[index].alunos.push({ nome, id });
+      document.getElementById("alunoNome").value = "";
+      document.getElementById("alunoID").value = "";
+      atualizarJSON();
+    }
+
+    function atualizarJSON() {
+      document.getElementById("jsonOutput").textContent = JSON.stringify(bancoDeDados, null, 2);
+    }
+  </script>
+</body>
+</html>
