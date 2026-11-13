@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Alunos - SENAI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .senai-red {
+            background-color: #CC092F;
+        }
+        .senai-red-text {
+            color: #CC092F;
+        }
+        .senai-red-border {
+            border-color: #CC092F;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #CC092F;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #CC092F;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Top Utility Bar (SENAI style) -->
+    <div class="bg-gray-900 text-white text-xs py-1 px-4 hidden md:flex justify-end space-x-6">
+        <span class="hover:underline cursor-pointer">FIESP</span>
+        <span class="hover:underline cursor-pointer">CIESP</span>
+        <span class="hover:underline cursor-pointer">SESI</span>
+        <span class="hover:underline cursor-pointer text-red-400 font-semibold">SENAI</span>
+        <span class="hover:underline cursor-pointer">IRS</span>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 senai-red-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo SENAI -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('user')">
+                <div class="senai-red text-white font-black text-2xl tracking-wider px-3 py-1 rounded shadow">
+                    SENAI
+                </div>
+                <span class="text-gray-700 font-semibold text-sm sm:text-base hidden sm:inline">Sistema de Catálogo de Alunos</span>
+            </div>
+
+            <!-- Nav Links / Actions -->
+            <div class="flex items-center space-x-4">
+                <button onclick="switchView('user')" id="btnUserNav" class="px-3.5 py-2 text-sm font-medium rounded-lg text-white senai-red transition hover:opacity-90 shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Portal do Aluno</span>
+                </button>
+
+                <!-- Admin Padlock Button -->
+                <button onclick="openAdminLoginModal()" class="p-2.5 text-gray-700 hover:text-white hover:bg-red-700 rounded-full transition border border-gray-200 shadow-sm flex items-center justify-center" title="Painel Administrativo">
+                    <i class="fa-solid fa-lock text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= USER VIEW ================= -->
+        <div id="userView" class="space-y-8">
+            <!-- Hero Banner -->
+            <div class="relative bg-gradient-to-r from-red-900 to-red-700 rounded-2xl overflow-hidden shadow-xl text-white p-6 sm:p-10 flex flex-col justify-between">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Inscrições Abertas</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold mt-3 tracking-tight">Catálogo e Seleção de Turmas</h1>
+                    <p class="mt-2 text-red-100 text-sm sm:text-base">Selecione sua turma de interesse e preencha o formulário abaixo para registrar seus dados em nossa unidade.</p>
+                </div>
+            </div>
+
+            <!-- Step 1: Select Turma -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-2">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full senai-red text-white text-sm">1</span>
+                        <span>Selecione a Turma Desejada</span>
+                    </h2>
+                    <span id="selectedTurmaIndicator" class="text-xs font-semibold px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Nenhuma turma selecionada</span>
+                </div>
+
+                <div id="turmasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Step 2: Student Registration Form (Hidden until Turma is selected) -->
+            <div id="registrationCard" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8 opacity-50 pointer-events-none transition-all duration-300">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center space-x-2">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full senai-red text-white text-sm">2</span>
+                        <span>Preencha seus Dados Cadastrais</span>
+                    </h2>
+                    <span class="text-xs text-gray-500">* Campos obrigatórios</span>
+                </div>
+
+                <form id="studentForm" onsubmit="handleStudentSubmit(event)" class="space-y-6">
+                    <input type="hidden" id="selectedTurmaId">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nome Completo -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+                            <input type="text" id="nome" required placeholder="Ex: João da Silva Santos" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:outline-none">
+                        </div>
+
+                        <!-- Idade Atual -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Idade Atual *</label>
+                            <input type="number" id="idade" required min="14" max="100" placeholder="Ex: 18" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:outline-none">
+                        </div>
+
+                        <!-- E-mail -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">E-mail *</label>
+                            <input type="email" id="email" required placeholder="seu.email@dominio.com" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:outline-none">
+                        </div>
+
+                        <!-- Telefone -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefone (Opcional)</label>
+                            <input type="text" id="telefone" placeholder="(11) 98765-4321" oninput="handlePhoneInput(this)" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:outline-none">
+                            <p id="phoneHelp" class="text-xs text-gray-500 mt-1">Digite apenas números. A máscara será aplicada automaticamente.</p>
+                        </div>
+
+                        <!-- Nível de Conhecimento em TI -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nível de Conhecimento em TI (0 a 10) *</label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" id="nivelTi" min="0" max="10" value="5" oninput="document.getElementById('tiVal').innerText = this.value" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600">
+                                <span id="tiVal" class="font-bold text-lg text-red-600 w-8 text-center bg-red-50 py-1 rounded">5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggles / Liga-Desliga -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-100">
+                        <!-- Toggle 1: Já fez cursos no Senai -->
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-800">Já fez cursos no SENAI?</span>
+                                <span class="text-xs text-gray-500">Possui histórico na instituição</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="fezSenai" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 2: Mora próximo -->
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-800">Mora próximo à unidade?</span>
+                                <span class="text-xs text-gray-500">Próximo a esta unidade SENAI</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="moraProximo" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 3: Terminou ensino médio -->
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-800">Terminou ensino médio?</span>
+                                <span class="text-xs text-gray-500">Ensino Médio completo</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="terminouEnsinoMedio" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="px-8 py-3.5 senai-red text-white font-semibold rounded-xl shadow-lg hover:opacity-90 transition flex items-center space-x-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Concluir Inscrição no Catálogo</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= ADMIN VIEW ================= -->
+        <div id="adminView" class="hidden space-y-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-gray-200 gap-4">
+                    <div>
+                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Painel de Controle</span>
+                        <h1 class="text-2xl font-black text-gray-800 mt-1">Administração do Sistema</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="exportDataJson()" class="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition shadow-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Baixar dados.json</span>
+                        </button>
+                        <label class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm cursor-pointer flex items-center space-x-2">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>Importar dados.json</span>
+                            <input type="file" id="importJsonFile" accept=".json" onchange="importDataJson(event)" class="hidden">
+                        </label>
+                        <button onclick="switchView('user')" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition">
+                            Sair do Admin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Tabs -->
+                <div class="flex space-x-4 mt-6 border-b border-gray-200 pb-px">
+                    <button onclick="switchAdminTab('turmas')" id="tabBtnTurmas" class="pb-3 font-semibold text-sm border-b-2 border-red-600 text-red-600 flex items-center space-x-2">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                        <span>Gerenciar Turmas</span>
+                    </button>
+                    <button onclick="switchAdminTab('alunos')" id="tabBtnAlunos" class="pb-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center space-x-2">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Alunos Cadastrados</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Gerenciar Turmas -->
+                <div id="adminTabTurmas" class="mt-6 space-y-6">
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Adicionar Nova Turma</h3>
+                        <form onsubmit="handleAddTurma(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nome da Turma</label>
+                                <input type="text" id="newTurmaName" required placeholder="Ex: Técnico em Desenvolvimento de Sistemas" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Período / Horário</label>
+                                <input type="text" id="newTurmaPeriodo" required placeholder="Ex: Noite (19h - 22h)" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full py-2.5 bg-gray-900 text-white font-semibold text-sm rounded-lg hover:bg-gray-800 transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Criar Turma</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Turmas Ativas</h3>
+                        <div id="adminTurmasList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Alunos Cadastrados -->
+                <div id="adminTabAlunos" class="mt-6 hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <h3 class="text-lg font-bold text-gray-800">Lista Geral de Alunos no Catálogo</h3>
+                        <div class="w-full sm:w-72">
+                            <input type="text" id="searchAlunos" oninput="renderAdminAlunos()" placeholder="Buscar por nome ou e-mail..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-semibold text-gray-600">Nome / E-mail</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-gray-600">Turma</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-gray-600">Idade / Tel</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-gray-600">Perfil (TI / Senai / Médio)</th>
+                                    <th class="px-6 py-3 text-right font-semibold text-gray-600">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAlunosTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12 py-8 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-400">
+            <p>&copy; 2026 SENAI-SP. Sistema de Catálogo de Alunos integrado com persistência de dados em formato JSON.</p>
+        </div>
+    </footer>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-lock senai-red-text"></i>
+                    <span>Acesso Administrativo</span>
+                </h3>
+                <button onclick="closeAdminLoginModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <p class="text-sm text-gray-600">Insira a senha padrão para acessar o painel de gerenciamento de turmas e alunos.</p>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Senha Padrão</label>
+                    <input type="password" id="adminPasswordInput" required placeholder="•••••••" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAdminLoginModal()" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 senai-red text-white text-sm font-semibold rounded-lg hover:opacity-90">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800">Editar Dados do Aluno</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="editStudentForm" onsubmit="handleSaveEditedStudent(event)" class="space-y-4">
+                <input type="hidden" id="editStudentId">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Completo</label>
+                    <input type="text" id="editNome" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Idade</label>
+                        <input type="number" id="editIdade" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nível TI (0-10)</label>
+                        <input type="number" id="editNivelTi" min="0" max="10" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">E-mail</label>
+                    <input type="email" id="editEmail" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Telefone</label>
+                    <input type="text" id="editTelefone" oninput="handlePhoneInput(this)" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Turma</label>
+                    <select id="editTurmaId" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="space-y-2 pt-2 border-t border-gray-100">
+                    <label class="flex items-center space-x-2 text-sm text-gray-700">
+                        <input type="checkbox" id="editFezSenai" class="rounded text-red-600 focus:ring-red-500">
+                        <span>Já fez cursos no SENAI</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700">
+                        <input type="checkbox" id="editMoraProximo" class="rounded text-red-600 focus:ring-red-500">
+                        <span>Mora próximo à unidade SENAI</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm text-gray-700">
+                        <input type="checkbox" id="editTerminouEnsinoMedio" class="rounded text-red-600 focus:ring-red-500">
+                        <span>Terminou o ensino médio</span>
+                    </label>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 senai-red text-white text-sm font-semibold rounded-lg hover:opacity-90">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-3">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Operação realizada com sucesso!</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Database state structure mimicking dados.json
+        let db = {
+            turmas: [
+                { id: "t1", nome: "Técnico em Desenvolvimento de Sistemas", periodo: "Noite (19h - 22h)" },
+                { id: "t2", nome: "Técnico em Inteligência Artificial", periodo: "Tarde (13h30 - 17h30)" },
+                { id: "t3", nome: "Eletromecânica Industrial", periodo: "Manhã (07h30 - 11h30)" }
+            ],
+            alunos: [
+                {
+                    id: "a1",
+                    turmaId: "t1",
+                    nome: "Carlos Eduardo Souza",
+                    idade: 19,
+                    fezSenai: true,
+                    moraProximo: true,
+                    terminouEnsinoMedio: true,
+                    nivelTi: 8,
+                    email: "carlos.souza@email.com",
+                    telefone: "(11) 98888-1234"
+                }
+            ]
+        };
+
+        // Initialize from localStorage if exists
+        function initStorage() {
+            const saved = localStorage.getItem('senai_dados_json');
+            if (saved) {
+                try {
+                    db = JSON.parse(saved);
+                } catch (e) {
+                    console.error("Erro ao carregar dados locais", e);
+                }
+            } else {
+                saveStorage();
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem('senai_dados_json', JSON.stringify(db, null, 2));
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+
+            msg.innerText = message;
+            if (type === 'success') {
+                icon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            } else {
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // Phone Mask Generator (digits only formatting)
+        function handlePhoneInput(input) {
+            let v = input.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.substring(0, 11);
+            
+            if (v.length > 10) {
+                v = v.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+            } else if (v.length > 6) {
+                v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+            } else if (v.length > 0) {
+                v = v.replace(/^(\d*)/, "($1");
+            }
+            input.value = v;
+
+            const help = document.getElementById('phoneHelp');
+            if (v.length > 0 && v.length < 14) {
+                help.innerText = "Digite completo com DDD. Ex: (11) 98888-7777";
+                help.className = "text-xs text-amber-600 mt-1";
+            } else {
+                help.innerText = "Digite apenas números. A máscara será aplicada automaticamente.";
+                help.className = "text-xs text-gray-500 mt-1";
+            }
+        }
+
+        // Switch between User and Admin views
+        function switchView(view) {
+            const userView = document.getElementById('userView');
+            const adminView = document.getElementById('adminView');
+
+            if (view === 'user') {
+                userView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                renderUserTurmas();
+            } else {
+                userView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                renderAdminTurmas();
+                renderAdminAlunos();
+            }
+        }
+
+        // ================= USER LOGIC =================
+        function renderUserTurmas() {
+            const container = document.getElementById('turmasGrid');
+            container.innerHTML = '';
+
+            if (db.turmas.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-center text-gray-500 py-6">Nenhuma turma cadastrada no momento.</p>`;
+                return;
+            }
+
+            db.turmas.forEach(t => {
+                const isSelected = document.getElementById('selectedTurmaId').value === t.id;
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${isSelected ? 'border-red-600 bg-red-50 shadow-md' : 'border-gray-200 hover:border-gray-300 bg-white'}`;
+                card.onclick = () => selectTurma(t.id, t.nome);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md">${t.periodo}</span>
+                            ${isSelected ? '<span class="text-red-600 font-bold text-sm"><i class="fa-solid fa-check-circle"></i> Selecionada</span>' : ''}
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-lg">${t.nome}</h3>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                        <span>Clique para selecionar</span>
+                        <i class="fa-solid fa-arrow-right text-red-600"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectTurma(id, nome) {
+            document.getElementById('selectedTurmaId').value = id;
+            document.getElementById('selectedTurmaIndicator').innerText = `Selecionada: ${nome}`;
+            document.getElementById('selectedTurmaIndicator').className = "text-xs font-semibold px-3 py-1 bg-red-100 text-red-700 rounded-full";
+
+            // Enable registration card
+            const regCard = document.getElementById('registrationCard');
+            regCard.classList.remove('opacity-50', 'pointer-events-none');
+            renderUserTurmas();
+            regCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleStudentSubmit(e) {
+            e.preventDefault();
+            const turmaId = document.getElementById('selectedTurmaId').value;
+            if (!turmaId) {
+                showToast("Por favor, selecione uma turma primeiro.", "error");
+                return;
+            }
+
+            const newStudent = {
+                id: 'a_' + Date.now(),
+                turmaId: turmaId,
+                nome: document.getElementById('nome').value.trim(),
+                idade: parseInt(document.getElementById('idade').value),
+                fezSenai: document.getElementById('fezSenai').checked,
+                moraProximo: document.getElementById('moraProximo').checked,
+                terminouEnsinoMedio: document.getElementById('terminouEnsinoMedio').checked,
+                nivelTi: parseInt(document.getElementById('nivelTi').value),
+                email: document.getElementById('email').value.trim(),
+                telefone: document.getElementById('telefone').value.trim()
+            };
+
+            db.alunos.push(newStudent);
+            saveStorage();
+            showToast("Inscrição realizada com sucesso no catálogo!");
+
+            // Reset form
+            document.getElementById('studentForm').reset();
+            document.getElementById('tiVal').innerText = "5";
+            document.getElementById('selectedTurmaId').value = "";
+            document.getElementById('selectedTurmaIndicator').innerText = "Nenhuma turma selecionada";
+            document.getElementById('selectedTurmaIndicator').className = "text-xs font-semibold px-3 py-1 bg-gray-100 text-gray-600 rounded-full";
+            document.getElementById('registrationCard').classList.add('opacity-50', 'pointer-events-none');
+            renderUserTurmas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ================= ADMIN LOGIC =================
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminPasswordInput').focus();
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === "!@1234") {
+                closeAdminLoginModal();
+                switchView('admin');
+                showToast("Painel administrativo acessado com sucesso!");
+            } else {
+                showToast("Senha incorreta! A senha padrão é !@1234", "error");
+            }
+        }
+
+        function switchAdminTab(tab) {
+            const btnTurmas = document.getElementById('tabBtnTurmas');
+            const btnAlunos = document.getElementById('tabBtnAlunos');
+            const tabTurmas = document.getElementById('adminTabTurmas');
+            const tabAlunos = document.getElementById('adminTabAlunos');
+
+            if (tab === 'turmas') {
+                btnTurmas.className = "pb-3 font-semibold text-sm border-b-2 border-red-600 text-red-600 flex items-center space-x-2";
+                btnAlunos.className = "pb-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center space-x-2";
+                tabTurmas.classList.remove('hidden');
+                tabAlunos.classList.add('hidden');
+                renderAdminTurmas();
+            } else {
+                btnAlunos.className = "pb-3 font-semibold text-sm border-b-2 border-red-600 text-red-600 flex items-center space-x-2";
+                btnTurmas.className = "pb-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center space-x-2";
+                tabAlunos.classList.remove('hidden');
+                tabTurmas.classList.add('hidden');
+                renderAdminAlunos();
+            }
+        }
+
+        // Turma Management
+        function handleAddTurma(e) {
+            e.preventDefault();
+            const nome = document.getElementById('newTurmaName').value.trim();
+            const periodo = document.getElementById('newTurmaPeriodo').value.trim();
+
+            const newTurma = {
+                id: 't_' + Date.now(),
+                nome: nome,
+                periodo: periodo
+            };
+
+            db.turmas.push(newTurma);
+            saveStorage();
+            showToast("Turma criada com sucesso!");
+            document.getElementById('newTurmaName').value = '';
+            document.getElementById('newTurmaPeriodo').value = '';
+            renderAdminTurmas();
+        }
+
+        function deleteTurma(id) {
+            const alunosNaTurma = db.alunos.filter(a => a.turmaId === id).length;
+            if (alunosNaTurma > 0) {
+                if (!confirm(`Esta turma possui ${alunosNaTurma} aluno(s) vinculado(s). Deseja realmente remover a turma?`)) {
+                    return;
+                }
+            }
+            db.turmas = db.turmas.filter(t => t.id !== id);
+            db.alunos = db.alunos.filter(a => a.turmaId !== id);
+            saveStorage();
+            showToast("Turma removida com sucesso!");
+            renderAdminTurmas();
+        }
+
+        function renderAdminTurmas() {
+            const container = document.getElementById('adminTurmasList');
+            container.innerHTML = '';
+
+            if (db.turmas.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-gray-500 text-center py-4">Nenhuma turma cadastrada.</p>`;
+                return;
+            }
+
+            db.turmas.forEach(t => {
+                const count = db.alunos.filter(a => a.turmaId === t.id).length;
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm";
+                div.innerHTML = `
+                    <div>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-700 rounded">${t.periodo}</span>
+                        <h4 class="font-bold text-gray-800 mt-1">${t.nome}</h4>
+                        <p class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-users"></i> ${count} aluno(s) inscrito(s)</p>
+                    </div>
+                    <button onclick="deleteTurma('${t.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Remover Turma">
+                        <i class="fa-solid fa-trash text-sm"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Student Management
+        function renderAdminAlunos() {
+            const tbody = document.getElementById('adminAlunosTableBody');
+            const search = document.getElementById('searchAlunos').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = db.alunos.filter(a => 
+                a.nome.toLowerCase().includes(search) || a.email.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum aluno encontrado.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(a => {
+                const turma = db.turmas.find(t => t.id === a.turmaId);
+                const turmaNome = turma ? turma.nome : 'Turma Removida';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-gray-900">${a.nome}</div>
+                        <div class="text-xs text-gray-500">${a.email}</div>
+                    </td>
+                    <td class="px-6 py-4 text-gray-700 font-medium">${turmaNome}</td>
+                    <td class="px-6 py-4 text-gray-600">
+                        <div>${a.idade} anos</div>
+                        <div class="text-xs text-gray-500">${a.telefone || 'Sem telefone'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs space-y-1">
+                            <span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-medium">TI: ${a.nivelTi}/10</span>
+                            <div>Senai: ${a.fezSenai ? 'Sim' : 'Não'} | Próx: ${a.moraProximo ? 'Sim' : 'Não'}</div>
+                            <div>Médio: ${a.terminouEnsinoMedio ? 'Sim' : 'Não'}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="openEditModal('${a.id}')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition">Editar</button>
+                        <button onclick="deleteStudent('${a.id}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteStudent(id) {
+            if (!confirm("Deseja realmente remover este aluno do catálogo?")) return;
+            db.alunos = db.alunos.filter(a => a.id !== id);
+            saveStorage();
+            showToast("Aluno removido com sucesso!");
+            renderAdminAlunos();
+        }
+
+        // Edit Student Modal
+        function openEditModal(id) {
+            const aluno = db.alunos.find(a => a.id === id);
+            if (!aluno) return;
+
+            document.getElementById('editStudentId').value = aluno.id;
+            document.getElementById('editNome').value = aluno.nome;
+            document.getElementById('editIdade').value = aluno.idade;
+            document.getElementById('editNivelTi').value = aluno.nivelTi;
+            document.getElementById('editEmail').value = aluno.email;
+            document.getElementById('editTelefone').value = aluno.telefone || '';
+            document.getElementById('editFezSenai').checked = aluno.fezSenai;
+            document.getElementById('editMoraProximo').checked = aluno.moraProximo;
+            document.getElementById('editTerminouEnsinoMedio').checked = aluno.terminouEnsinoMedio;
+
+            // Populate select turma
+            const select = document.getElementById('editTurmaId');
+            select.innerHTML = '';
+            db.turmas.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.innerText = t.nome + ` (${t.periodo})`;
+                if (t.id === aluno.turmaId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('editStudentModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editStudentModal').classList.add('hidden');
+        }
+
+        function handleSaveEditedStudent(e) {
+            e.preventDefault();
+            const id = document.getElementById('editStudentId').value;
+            const aluno = db.alunos.find(a => a.id === id);
+            if (!aluno) return;
+
+            aluno.nome = document.getElementById('editNome').value.trim();
+            aluno.idade = parseInt(document.getElementById('editIdade').value);
+            aluno.nivelTi = parseInt(document.getElementById('editNivelTi').value);
+            aluno.email = document.getElementById('editEmail').value.trim();
+            aluno.telefone = document.getElementById('editTelefone').value.trim();
+            aluno.turmaId = document.getElementById('editTurmaId').value;
+            aluno.fezSenai = document.getElementById('editFezSenai').checked;
+            aluno.moraProximo = document.getElementById('editMoraProximo').checked;
+            aluno.terminouEnsinoMedio = document.getElementById('editTerminouEnsinoMedio').checked;
+
+            saveStorage();
+            closeEditModal();
+            showToast("Dados do aluno atualizados com sucesso!");
+            renderAdminAlunos();
+        }
+
+        // ================= JSON EXPORT / IMPORT =================
+        function exportDataJson() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "dados.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Arquivo dados.json exportado com sucesso!");
+        }
+
+        function importDataJson(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed && Array.isArray(parsed.turmas) && Array.isArray(parsed.alunos)) {
+                        db = parsed;
+                        saveStorage();
+                        showToast("Dados importados com sucesso a partir do dados.json!");
+                        renderAdminTurmas();
+                        renderAdminAlunos();
+                        renderUserTurmas();
+                    } else {
+                        showToast("Formato inválido do arquivo dados.json", "error");
+                    }
+                } catch (err) {
+                    showToast("Erro ao ler o arquivo JSON.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize app on load
+        window.onload = function() {
+            initStorage();
+            renderUserTurmas();
+        };
+    </script>
+</body>
+</html>
