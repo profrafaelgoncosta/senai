@@ -3,1087 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENAI - Catálogo e Inscrição de Alunos</title>
-    <!-- Tailwind CSS CDN -->
+    <title>SENAI-SP - Catálogo de Alunos</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome para Ícones -->
+    <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
                     colors: {
-                        senai: {
-                            red: '#CC092F',
-                            darkred: '#9E0624',
-                            light: '#F4F4F4',
-                            dark: '#1F2937'
-                        }
+                        senaiRed: '#CC092F',
+                        senaiRedDark: '#A00724'
                     }
                 }
             }
         }
     </script>
-
-    <style>
-        body {
-            background-color: #E8E8E8;
-            color: #1F2937;
-        }
-        /* Customização do Slider de TI */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-            background: #E5E7EB;
-            height: 0.5rem;
-            border-radius: 0.5rem;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            margin-top: -6px;
-            background-color: #CC092F;
-            height: 1.25rem;
-            width: 1.25rem;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: transform 0.15s ease-in-out;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-        /* Animações suaves */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans">
+<body class="bg-gray-100 min-h-screen flex flex-col font-sans">
 
-    <!-- Barra Superior Institucional Vermelha (Idêntica à referência SENAI) -->
-    <div class="bg-[#CC092F] text-white text-[11px] font-semibold tracking-wider py-1.5 px-4 md:px-12 flex justify-between items-center">
-        <div class="hidden sm:flex items-center space-x-4">
-            <span>FIESP</span>
-            <span>CIESP</span>
-            <span>SESI</span>
-            <span class="underline decoration-2 underline-offset-4">SENAI</span>
-            <span>IRS</span>
-        </div>
-        <div class="flex items-center space-x-3 ml-auto">
-            <span class="opacity-90 hidden md:inline">Portal de Catalogação Acadêmica</span>
-            <div class="flex space-x-2.5 text-xs">
-                <i class="fa-brands fa-facebook-f opacity-80 hover:opacity-100 cursor-pointer"></i>
-                <i class="fa-brands fa-twitter opacity-80 hover:opacity-100 cursor-pointer"></i>
-                <i class="fa-brands fa-youtube opacity-80 hover:opacity-100 cursor-pointer"></i>
-                <i class="fa-brands fa-linkedin-in opacity-80 hover:opacity-100 cursor-pointer"></i>
-                <i class="fa-brands fa-instagram opacity-80 hover:opacity-100 cursor-pointer"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cabeçalho Principal Branco com Borda Vermelha -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
-            <!-- Logo SENAI -->
-            <div class="flex items-center space-x-6">
-                <a href="#" onclick="switchView('user')" class="flex items-center group">
-                    <div class="bg-[#CC092F] text-white font-black italic text-2xl md:text-3xl px-3.5 py-1 tracking-tighter select-none shadow-sm group-hover:bg-[#9E0624] transition">
-                        SENAI
-                    </div>
-                </a>
-
-                <!-- Links de Navegação (Visual Institucional) -->
-                <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium text-gray-700 border-b-2 border-[#CC092F] pb-1">
-                    <button onclick="switchView('user')" class="text-[#CC092F] font-semibold">Inscrição de Alunos</button>
-                    <span class="text-gray-400 cursor-default">Cursos Técnicos</span>
-                    <span class="text-gray-400 cursor-default">Processo Seletivo</span>
-                    <span class="text-gray-400 cursor-default">Unidades</span>
-                </nav>
+    <!-- Cabeçalho SENAI -->
+    <header class="bg-white shadow-md border-b-4 border-senaiRed sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-senaiRed text-white font-black text-2xl px-4 py-2 tracking-wider rounded">
+                    SENAI
+                </div>
+                <span class="text-gray-700 font-semibold text-lg hidden sm:inline">Catálogo de Alunos</span>
             </div>
 
-            <!-- Ações do Cabeçalho (Botão Cadeado Admin) -->
-            <div class="flex items-center space-x-3">
-                <button onclick="exportDataJson()" title="Baixar arquivo dados.json" class="hidden sm:flex items-center space-x-1.5 text-xs font-medium text-gray-600 hover:text-[#CC092F] bg-gray-100 hover:bg-red-50 px-3 py-2 rounded-lg transition">
-                    <i class="fa-solid fa-download"></i>
-                    <span>Baixar dados.json</span>
-                </button>
-
-                <div class="h-6 w-[1px] bg-gray-300 hidden sm:block"></div>
-
-                <!-- Botão Cadeado para Administração -->
-                <button id="adminToggleBtn" onclick="openAdminAuth()" class="flex items-center space-x-2 text-sm font-semibold text-gray-800 hover:text-[#CC092F] px-3.5 py-2 rounded-lg border border-gray-200 hover:border-[#CC092F] transition shadow-sm bg-white">
-                    <i id="lockIcon" class="fa-solid fa-lock text-[#CC092F]"></i>
-                    <span id="adminBtnText">Área Restrita</span>
+            <div class="flex items-center space-x-4">
+                <button onclick="abrirAdminModal()" class="text-gray-600 hover:text-senaiRed transition p-2 rounded-full hover:bg-gray-100" title="Painel Administrativo">
+                    <i class="fa-solid fa-lock text-xl"></i>
                 </button>
             </div>
         </div>
-        <!-- Linha vermelha inferior característica do menu SENAI -->
-        <div class="h-1 bg-[#CC092F] w-full"></div>
     </header>
 
-    <!-- Notificação Toast Flutuante -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 my-6">
 
-    <!-- ===================================================================== -->
-    <!-- TELA 1: MODO USUÁRIO (SELEÇÃO DE TURMA E CADASTRO DE ALUNO)           -->
-    <!-- ===================================================================== -->
-    <main id="userView" class="flex-grow max-w-6xl w-full mx-auto px-4 py-8 fade-in">
-        
-        <!-- Banner Destaque Estilo Portal SENAI -->
-        <div class="bg-gradient-to-r from-[#CC092F] via-[#B30728] to-[#8C041E] rounded-2xl shadow-lg overflow-hidden mb-8 text-white relative">
-            <div class="p-6 md:p-10 md:flex items-center justify-between relative z-10">
-                <div class="max-w-2xl">
-                    <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
-                        Catálogo de Estudantes
-                    </span>
-                    <h1 class="text-2xl md:text-4xl font-extrabold leading-tight mb-2">
-                        Bem-vindo ao Sistema de Cadastro de Alunos SENAI
-                    </h1>
-                    <p class="text-red-100 text-sm md:text-base">
-                        Selecione abaixo a sua turma desejada e preencha seus dados acadêmicos para registrar sua participação.
-                    </p>
-                </div>
-                <div class="hidden md:flex items-center justify-center bg-white/10 p-5 rounded-2xl backdrop-blur-sm border border-white/20">
-                    <i class="fa-solid fa-graduation-cap text-5xl text-white"></i>
+        <!-- MODO USUÁRIO: Formulário de Inscrição -->
+        <div id="user-view" class="bg-white shadow-lg rounded-lg p-6 sm:p-8 border-t-4 border-senaiRed">
+            <div class="mb-6 border-b pb-4 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Inscrição de Aluno</h1>
+                    <p class="text-sm text-gray-500">Selecione sua turma e preencha seus dados abaixo.</p>
                 </div>
             </div>
-            <!-- Elemento decorativo geométrico -->
-            <div class="absolute right-0 top-0 h-full w-1/3 bg-black/10 transform skew-x-12 translate-x-12 pointer-events-none"></div>
+
+            <form id="student-form" onsubmit="salvarAluno(event)" class="space-y-6">
+                <!-- Seleção de Turma -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Selecione a Turma *</label>
+                    <select id="turma-select" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none bg-white">
+                        <option value="">Carregando turmas...</option>
+                    </select>
+                </div>
+
+                <!-- Nome Completo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nome Completo *</label>
+                    <input type="text" id="nome" required placeholder="Digite seu nome completo" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                </div>
+
+                <!-- Idade -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Idade Atual *</label>
+                    <input type="number" id="idade" min="10" max="100" required placeholder="Ex: 18" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                </div>
+
+                <!-- Toggles (Liga/Desliga) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Já fez cursos no Senai?</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="fez_senai" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-senaiRed"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Mora próximo à unidade?</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="mora_proximo" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-senaiRed"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Terminou o ensino médio?</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="terminou_ensino_medio" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-senaiRed"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Nível de Conhecimento em TI -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-semibold text-gray-700">Nível de conhecimento em TI (0 a 10)</label>
+                        <span id="nivel-ti-val" class="font-bold text-senaiRed bg-red-50 px-3 py-1 rounded-full text-sm">5</span>
+                    </div>
+                    <input type="range" id="nivel_ti" min="0" max="10" value="5" oninput="document.getElementById('nivel-ti-val').innerText = this.value" class="w-full accent-senaiRed cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>0 (Iniciante)</span>
+                        <span>5 (Intermediário)</span>
+                        <span>10 (Avançado)</span>
+                    </div>
+                </div>
+
+                <!-- E-mail -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">E-mail *</label>
+                    <input type="email" id="email" required placeholder="seu.email@exemplo.com" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                </div>
+
+                <!-- Telefone -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Telefone (Opcional)</label>
+                    <input type="text" id="telefone" placeholder="(11) 98888-7777" oninput="aplicarMascaraTelefone(this)" maxlength="15" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                    <p id="telefone-hint" class="text-xs text-gray-400 mt-1">Digite apenas os números com DDD.</p>
+                </div>
+
+                <!-- Botão Enviar -->
+                <button type="submit" class="w-full bg-senaiRed hover:bg-senaiRedDark text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-md">
+                    Cadastrar Inscrição
+                </button>
+            </form>
         </div>
 
-        <!-- Passo 1: Seleção de Turma -->
-        <section class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <span class="bg-[#CC092F] text-white w-7 h-7 rounded-full inline-flex items-center justify-center text-sm font-bold">1</span>
-                    Selecione sua Turma
-                </h2>
-                <span id="turmasCountBadge" class="text-xs font-semibold bg-white px-3 py-1 rounded-full text-gray-600 shadow-sm">
-                    Carregando turmas...
-                </span>
-            </div>
-
-            <!-- Grid de Turmas -->
-            <div id="turmasGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Preenchido via JS -->
-            </div>
-        </section>
-
-        <!-- Passo 2: Formulário de Cadastro do Aluno -->
-        <section id="registrationCard" class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8 transition-all duration-300 opacity-50 pointer-events-none">
-            <div class="border-b border-gray-100 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                    <h2 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <span class="bg-[#CC092F] text-white w-7 h-7 rounded-full inline-flex items-center justify-center text-sm font-bold">2</span>
-                        Dados Cadastrais do Aluno
-                    </h2>
-                    <p class="text-xs text-gray-500 mt-1">Preencha todos os campos obrigatórios com atenção.</p>
-                </div>
-                <div id="selectedTurmaIndicator" class="text-xs font-semibold px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full self-start sm:self-auto">
-                    Nenhuma turma selecionada
-                </div>
-            </div>
-
-            <form id="studentForm" onsubmit="handleStudentSubmit(event)" class="space-y-6">
-                <input type="hidden" id="selectedTurmaId" required>
-
-                <!-- Linha 1: Nome Completo e Idade -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div class="md:col-span-2">
-                        <label for="nome" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Nome completo <span class="text-[#CC092F]">*</span>
-                        </label>
-                        <input type="text" id="nome" required placeholder="Digite seu nome completo"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#CC092F] focus:ring-2 focus:ring-[#CC092F]/20 outline-none transition text-sm">
-                    </div>
-
-                    <div>
-                        <label for="idade" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Idade atual <span class="text-[#CC092F]">*</span>
-                        </label>
-                        <input type="number" id="idade" required min="10" max="100" placeholder="Ex: 18"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#CC092F] focus:ring-2 focus:ring-[#CC092F]/20 outline-none transition text-sm">
-                    </div>
-                </div>
-
-                <!-- Linha 2: E-mail e Telefone com Máscara Inteligente -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            E-mail <span class="text-[#CC092F]">*</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
-                                <i class="fa-regular fa-envelope"></i>
-                            </span>
-                            <input type="email" id="email" required placeholder="seu.email@exemplo.com"
-                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#CC092F] focus:ring-2 focus:ring-[#CC092F]/20 outline-none transition text-sm">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="telefone" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                            Telefone <span class="text-xs font-normal text-gray-400">(opcional)</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
-                                <i class="fa-solid fa-phone"></i>
-                            </span>
-                            <input type="tel" id="telefone" maxlength="15" oninput="handlePhoneInput(this)" placeholder="(11) 98765-4321"
-                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#CC092F] focus:ring-2 focus:ring-[#CC092F]/20 outline-none transition text-sm">
-                        </div>
-                        <p id="phoneHelper" class="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-info text-[#CC092F]"></i>
-                            <span>Digite apenas números (DDD + número). A máscara será aplicada automaticamente.</span>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Linha 3: Chaves Liga/Desliga (Toggles) -->
-                <div class="bg-gray-50 p-5 rounded-xl border border-gray-200/80 space-y-4">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Perfil do Candidato</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Toggle 1: Já fez cursos no Senai? -->
-                        <label class="flex items-center justify-between bg-white p-3.5 rounded-xl border border-gray-200 cursor-pointer hover:border-[#CC092F]/50 transition">
-                            <span class="text-sm font-medium text-gray-700 pr-2">Já fez cursos no Senai?</span>
-                            <div class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" id="fezSenai" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#CC092F]"></div>
-                            </div>
-                        </label>
-
-                        <!-- Toggle 2: Mora próximo a essa unidade Senai? -->
-                        <label class="flex items-center justify-between bg-white p-3.5 rounded-xl border border-gray-200 cursor-pointer hover:border-[#CC092F]/50 transition">
-                            <span class="text-sm font-medium text-gray-700 pr-2">Mora próximo a essa unidade Senai?</span>
-                            <div class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" id="moraProximo" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#CC092F]"></div>
-                            </div>
-                        </label>
-
-                        <!-- Toggle 3: Já terminou o ensino médio? -->
-                        <label class="flex items-center justify-between bg-white p-3.5 rounded-xl border border-gray-200 cursor-pointer hover:border-[#CC092F]/50 transition">
-                            <span class="text-sm font-medium text-gray-700 pr-2">Já terminou o ensino médio?</span>
-                            <div class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" id="terminouEnsinoMedio" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#CC092F]"></div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Linha 4: Nível de Conhecimento em TI (0 a 10) -->
-                <div class="bg-gray-50 p-5 rounded-xl border border-gray-200/80">
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="nivelTi" class="text-sm font-semibold text-gray-700">
-                            Qual o seu nível de conhecimento em TI?
-                        </label>
-                        <span id="tiVal" class="bg-[#CC092F] text-white font-bold text-sm px-3 py-0.5 rounded-full shadow-sm">
-                            5
-                        </span>
-                    </div>
-                    <input type="range" id="nivelTi" min="0" max="10" value="5" oninput="document.getElementById('tiVal').innerText = this.value" class="w-full">
-                    <div class="flex justify-between text-[11px] text-gray-500 font-medium mt-1">
-                        <span>0 - Iniciante</span>
-                        <span>5 - Intermediário</span>
-                        <span>10 - Avançado</span>
-                    </div>
-                </div>
-
-                <!-- Botão de Envio -->
-                <div class="pt-2 flex justify-end">
-                    <button type="submit" class="w-full sm:w-auto bg-[#CC092F] hover:bg-[#9E0624] text-white font-bold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>Finalizar Cadastro</span>
-                    </button>
-                </div>
-            </form>
-        </section>
     </main>
 
-    <!-- ===================================================================== -->
-    <!-- TELA 2: PAINEL DE ADMINISTRAÇÃO                                       -->
-    <!-- ===================================================================== -->
-    <main id="adminView" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 py-8 fade-in">
-        
-        <!-- Cabeçalho do Painel Admin -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="bg-red-100 text-[#CC092F] text-xs font-bold px-2.5 py-1 rounded-md uppercase">Modo Administrador</span>
-                    <h1 class="text-2xl font-extrabold text-gray-800">Gestão de Turmas e Alunos</h1>
-                </div>
-                <p class="text-sm text-gray-500 mt-1">Gerencie as turmas disponíveis, edite cadastros ou exporte o banco de dados.</p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2.5">
-                <label class="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-upload text-[#CC092F]"></i>
-                    <span>Importar dados.json</span>
-                    <input type="file" accept=".json" onchange="importDataJson(event)" class="hidden">
-                </label>
-
-                <button onclick="exportDataJson()" class="bg-gray-800 hover:bg-black text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-export"></i>
-                    <span>Salvar dados.json</span>
-                </button>
-
-                <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-[#CC092F] text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Sair</span>
-                </button>
+    <!-- Modal de Senha do Administrador -->
+    <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fa-solid fa-lock text-senaiRed mr-2"></i> Acesso Administrativo
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">Insira a senha padrão para acessar o painel de gerenciamento.</p>
+            <input type="password" id="admin-senha-input" placeholder="Senha" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+            <div class="flex justify-end space-x-3">
+                <button onclick="fecharAdminModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                <button onclick="verificarSenhaAdmin()" class="px-4 py-2 bg-senaiRed text-white rounded-lg hover:bg-senaiRedDark transition">Entrar</button>
             </div>
         </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- MODO ADMINISTRAÇÃO (Painel Oculto) -->
+    <div id="admin-view" class="hidden fixed inset-0 bg-gray-100 z-50 overflow-y-auto">
+        <header class="bg-white shadow border-b border-gray-200 sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-senaiRed text-white font-bold px-3 py-1 rounded text-sm">ADMIN</div>
+                    <h1 class="text-lg font-bold text-gray-800">Painel de Gerenciamento</h1>
+                </div>
+                <button onclick="sairAdmin()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium transition text-sm">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair do Painel
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-8">
             
-            <!-- Coluna Esquerda: Gerenciamento de Turmas -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-[#CC092F]"></i>
-                        <span>Criar Nova Turma</span>
-                    </h2>
-                    <form onsubmit="handleAddTurma(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nome do Curso / Turma</label>
-                            <input type="text" id="newTurmaName" required placeholder="Ex: Técnico em Desenvolvimento de Sistemas"
-                                class="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:border-[#CC092F] outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Turno / Horário</label>
-                            <input type="text" id="newTurmaPeriodo" required placeholder="Ex: Noite (19h às 22h)"
-                                class="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:border-[#CC092F] outline-none text-sm">
-                        </div>
-                        <button type="submit" class="w-full bg-[#CC092F] hover:bg-[#9E0624] text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-sm">
-                            + Adicionar Turma
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Lista de Turmas Ativas -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-base font-bold text-gray-800 mb-3">Turmas Cadastradas</h3>
-                    <div id="adminTurmasList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Coluna Direita: Lista de Alunos Cadastrados -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-                        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fa-solid fa-users text-[#CC092F]"></i>
-                            <span>Alunos Cadastrados</span>
-                            <span id="totalAlunosBadge" class="bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-0.5 rounded-full">0</span>
-                        </h2>
-
-                        <!-- Filtro por Turma -->
-                        <select id="filterTurmaSelect" onchange="renderAdminAlunos()" class="text-sm border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#CC092F]">
-                            <option value="all">Todas as Turmas</option>
-                        </select>
-                    </div>
-
-                    <div id="adminAlunosList" class="space-y-3">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- ===================================================================== -->
-    <!-- MODAL 1: AUTENTICAÇÃO DO ADMINISTRADOR (SENHA PADRÃO: !@1234)         -->
-    <!-- ===================================================================== -->
-    <div id="authModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl fade-in">
-            <div class="text-center mb-5">
-                <div class="w-12 h-12 bg-red-100 text-[#CC092F] rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-800">Acesso Administrativo</h3>
-                <p class="text-xs text-gray-500 mt-1">Digite a senha de administrador para gerenciar turmas e alunos.</p>
-            </div>
-
-            <form onsubmit="verifyAdminPassword(event)" class="space-y-4">
+            <!-- Ações Rápidas / Exportar e Importar Planilha CSV -->
+            <div class="bg-white shadow rounded-lg p-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <input type="password" id="adminPasswordInput" required placeholder="Digite a senha..."
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-[#CC092F] outline-none text-center tracking-widest text-sm">
+                    <h2 class="text-lg font-bold text-gray-800">Sincronização por Planilha CSV</h2>
+                    <p class="text-sm text-gray-500">Exporte os dados para editar no Excel ou importe uma planilha atualizada.</p>
                 </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeAuthModal()" class="w-1/2 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition">
-                        Cancelar
+                <div class="flex items-center space-x-3">
+                    <button onclick="exportarCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg transition text-sm shadow">
+                        <i class="fa-solid fa-file-excel mr-2"></i> Baixar Planilha CSV
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-[#CC092F] text-white font-semibold text-sm hover:bg-[#9E0624] transition">
-                        Entrar
-                    </button>
+                    <label class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition text-sm shadow cursor-pointer">
+                        <i class="fa-solid fa-upload mr-2"></i> Importar Planilha CSV
+                        <input type="file" accept=".csv" onchange="importarCSV(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Gerenciamento de Turmas -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Gerenciar Turmas</h2>
+                <form onsubmit="criarTurma(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <input type="text" id="nova-turma-nome" required placeholder="Nome da Turma (Ex: Técnico em TI)" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                    <input type="text" id="nova-turma-periodo" required placeholder="Período (Ex: Noite)" class="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-senaiRed focus:outline-none">
+                    <button type="submit" class="bg-senaiRed hover:bg-senaiRedDark text-white font-bold py-3 px-4 rounded-lg transition">Criar Turma</button>
+                </form>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Nome da Turma</th>
+                                <th class="p-3">Período</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-turmas-list" class="divide-y divide-gray-200 text-sm">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Gerenciamento de Alunos -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Alunos Cadastrados</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                                <th class="p-3">Nome</th>
+                                <th class="p-3">Turma</th>
+                                <th class="p-3">Idade</th>
+                                <th class="p-3">E-mail / Tel</th>
+                                <th class="p-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-alunos-list" class="divide-y divide-gray-200 text-sm">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal de Edição de Aluno -->
+    <div id="edit-aluno-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Editar Dados do Aluno</h3>
+            <form id="edit-aluno-form" onsubmit="salvarEdicaoAluno(event)" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Turma</label>
+                    <select id="edit-turma" class="w-full border border-gray-300 rounded-lg p-2 bg-white"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="edit-nome" required class="w-full border border-gray-300 rounded-lg p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Idade</label>
+                    <input type="number" id="edit-idade" required class="w-full border border-gray-300 rounded-lg p-2">
+                </div>
+                <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded border text-xs">
+                    <label class="flex items-center space-x-1"><input type="checkbox" id="edit-fez_senai"> <span>Fez Senai</span></label>
+                    <label class="flex items-center space-x-1"><input type="checkbox" id="edit-mora_proximo"> <span>Mora perto</span></label>
+                    <label class="flex items-center space-x-1"><input type="checkbox" id="edit-terminou_ensino_medio"> <span>Ens. Médio</span></label>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nível TI (0-10)</label>
+                    <input type="number" id="edit-nivel_ti" min="0" max="10" required class="w-full border border-gray-300 rounded-lg p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">E-mail</label>
+                    <input type="email" id="edit-email" required class="w-full border border-gray-300 rounded-lg p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
+                    <input type="text" id="edit-telefone" class="w-full border border-gray-300 rounded-lg p-2">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t">
+                    <button type="button" onclick="fecharEditModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-senaiRed text-white rounded-lg">Salvar Alterações</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 2: EDITAR DADOS DO ALUNO (ADMIN)                                -->
-    <!-- ===================================================================== -->
-    <div id="editStudentModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl fade-in my-8">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Editar Cadastro do Aluno</h3>
-                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form onsubmit="handleSaveEditedStudent(event)" class="space-y-4">
-                <input type="hidden" id="editStudentId">
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Turma</label>
-                    <select id="editTurmaId" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#CC092F]"></select>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Completo</label>
-                        <input type="text" id="editNome" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#CC092F]">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Idade</label>
-                        <input type="number" id="editIdade" required min="10" max="100" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#CC092F]">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">E-mail</label>
-                        <input type="email" id="editEmail" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#CC092F]">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Telefone</label>
-                        <input type="tel" id="editTelefone" maxlength="15" oninput="handlePhoneInput(this, true)" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#CC092F]">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nível de TI (0 a 10): <span id="editTiVal" class="text-[#CC092F] font-bold">5</span></label>
-                    <input type="range" id="editNivelTi" min="0" max="10" oninput="document.getElementById('editTiVal').innerText = this.value" class="w-full">
-                </div>
-
-                <div class="space-y-2 bg-gray-50 p-3.5 rounded-xl">
-                    <label class="flex items-center justify-between text-xs font-medium text-gray-700 cursor-pointer">
-                        <span>Já fez cursos no Senai?</span>
-                        <input type="checkbox" id="editFezSenai" class="accent-[#CC092F] w-4 h-4">
-                    </label>
-                    <label class="flex items-center justify-between text-xs font-medium text-gray-700 cursor-pointer">
-                        <span>Mora próximo a essa unidade Senai?</span>
-                        <input type="checkbox" id="editMoraProximo" class="accent-[#CC092F] w-4 h-4">
-                    </label>
-                    <label class="flex items-center justify-between text-xs font-medium text-gray-700 cursor-pointer">
-                        <span>Já terminou o ensino médio?</span>
-                        <input type="checkbox" id="editTerminouEnsinoMedio" class="accent-[#CC092F] w-4 h-4">
-                    </label>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#CC092F] text-white text-sm font-semibold hover:bg-[#9E0624]">
-                        Salvar Alterações
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Rodapé Institucional -->
-    <footer class="bg-white border-t border-gray-200 py-5 px-4 text-center text-xs text-gray-500 mt-12">
-        <p>© SENAI - Serviço Nacional de Aprendizagem Industrial | Sistema de Catálogo Acadêmico</p>
-    </footer>
-
-    <!-- ===================================================================== -->
-    <!-- JAVASCRIPT DA APLICAÇÃO + INTEGRAÇÃO COM SUPABASE                     -->
-    <!-- ===================================================================== -->
+    <!-- Script de Integração -->
     <script>
-        // =====================================================================
-        // CONFIGURAÇÃO DO SUPABASE (COLE SUAS CHAVES AQUI DENTRO DAS ASPAS)
-        // =====================================================================
+        // CONFIGURAÇÃO DO SUPABASE (Insira seus dados aqui)
         const SUPABASE_URL = 'https://jwczskeuxvpqbsvriwjg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_aSKP4tD061AnAbxxYnx1PA_U2kqdULm';
 
-        let supabaseClient = null;
-        try {
-            if (SUPABASE_URL.startsWith('http') && window.supabase) {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (e) {
-            console.error("Erro ao inicializar Supabase:", e);
-        }
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Estado em memória sincronizado com o banco
-        let db = {
-            turmas: [],
-            alunos: []
-        };
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarTurmas();
+        });
 
-        let isAdminAuthenticated = false;
+        // Máscara de Telefone Automática
+        function aplicarMascaraTelefone(input) {
+            let v = input.value.replace(/\D/g, '');
+            const hint = document.getElementById('telefone-hint');
+            
+            if (v.length > 11) v = v.substring(0, 11);
 
-        // Sistema de Notificações (Toast)
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            const bgColor = type === 'error' ? 'bg-red-700' : 'bg-gray-900';
-            const icon = type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check';
-
-            toast.className = `${bgColor} text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2.5 fade-in pointer-events-auto`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${message}</span>`;
-
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        // Carrega os dados do Supabase
-        async function loadFromDatabase() {
-            if (!supabaseClient) {
-                document.getElementById('turmasCountBadge').innerText = "Aguardando configuração do Supabase";
-                document.getElementById('turmasGrid').innerHTML = `
-                    <div class="col-span-full bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm">
-                        <strong>Atenção:</strong> Configure a <code>SUPABASE_URL</code> e a <code>SUPABASE_ANON_KEY</code> no código para carregar e salvar as turmas online.
-                    </div>
-                `;
-                return;
-            }
-
-            try {
-                const { data: turmasData, error: errTurmas } = await supabaseClient
-                    .from('turmas')
-                    .select('*')
-                    .order('created_at', { ascending: true });
-
-                if (errTurmas) throw errTurmas;
-                db.turmas = turmasData || [];
-
-                const { data: alunosData, error: errAlunos } = await supabaseClient
-                    .from('alunos')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (errAlunos) throw errAlunos;
-
-                db.alunos = (alunosData || []).map(a => ({
-                    id: a.id,
-                    turmaId: a.turma_id,
-                    nome: a.nome,
-                    idade: a.idade,
-                    fezSenai: a.fez_senai,
-                    moraProximo: a.mora_proximo,
-                    terminouEnsinoMedio: a.terminou_ensino_medio,
-                    nivelTi: a.nivel_ti,
-                    email: a.email,
-                    telefone: a.telefone
-                }));
-
-                renderUserTurmas();
-                if (!document.getElementById('adminView').classList.contains('hidden')) {
-                    renderAdminTurmas();
-                    renderAdminAlunos();
-                }
-            } catch (error) {
-                console.error("Erro Supabase:", error);
-                showToast("Erro ao conectar com o Supabase. Verifique suas chaves e tabelas.", "error");
-            }
-        }
-
-        // Alterna entre tela de Usuário e tela de Admin
-        async function switchView(view) {
-            const userView = document.getElementById('userView');
-            const adminView = document.getElementById('adminView');
-
-            await loadFromDatabase();
-
-            if (view === 'user') {
-                userView.classList.remove('hidden');
-                adminView.classList.add('hidden');
-                renderUserTurmas();
+            if (v.length > 10) {
+                input.value = `(${v.substring(0,2)}) ${v.substring(2,7)}-${v.substring(7,11)}`;
+                hint.innerText = "Celular formatado com sucesso!";
+            } else if (v.length > 6) {
+                input.value = `(${v.substring(0,2)}) ${v.substring(2,6)}-${v.substring(6,10)}`;
+                hint.innerText = "Continue digitando o número...";
+            } else if (v.length > 2) {
+                input.value = `(${v.substring(0,2)}) ${v.substring(2)}`;
+                hint.innerText = "Digite o número do telefone...";
+            } else if (v.length > 0) {
+                input.value = `(${v}`;
+                hint.innerText = "Digite o DDD...";
             } else {
-                userView.classList.add('hidden');
-                adminView.classList.remove('hidden');
-                renderAdminTurmas();
-                renderAdminAlunos();
+                input.value = '';
+                hint.innerText = "Digite apenas os números com DDD.";
             }
         }
 
-        // ================= LÓGICA DO MODO USUÁRIO =================
-
-        function renderUserTurmas() {
-            const grid = document.getElementById('turmasGrid');
-            const badge = document.getElementById('turmasCountBadge');
-            const selectedId = document.getElementById('selectedTurmaId').value;
-
-            badge.innerText = `${db.turmas.length} turma(s) disponível(is)`;
-
-            if (db.turmas.length === 0) {
-                grid.innerHTML = `<div class="col-span-full bg-white p-6 rounded-xl text-center text-gray-500 text-sm">Nenhuma turma cadastrada no momento.</div>`;
+        // Carregar Turmas no Select do Usuário e Admin
+        async function carregarTurmas() {
+            const { data: turmas, error } = await supabaseClient.from('turmas').select('*').order('nome');
+            if (error) {
+                console.error('Erro ao carregar turmas:', error);
                 return;
             }
 
-            grid.innerHTML = db.turmas.map(turma => {
-                const isSelected = turma.id === selectedId;
-                return `
-                    <div onclick="selectTurma('${turma.id}')" 
-                        class="cursor-pointer rounded-2xl p-5 border-2 transition-all duration-200 bg-white shadow-xs hover:shadow-md flex flex-col justify-between ${isSelected ? 'border-[#CC092F] ring-2 ring-[#CC092F]/20 bg-red-50/30' : 'border-transparent hover:border-gray-300'}">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-[#CC092F] text-white' : 'bg-gray-100 text-gray-600'}">
-                                    ${turma.periodo}
-                                </span>
-                                <i class="fa-solid ${isSelected ? 'fa-circle-check text-[#CC092F] text-lg' : 'fa-circle text-gray-200 text-lg'}"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-800 text-base leading-snug mt-2">${turma.nome}</h3>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold ${isSelected ? 'text-[#CC092F]' : 'text-gray-500'}">
-                            <span>${isSelected ? 'Turma Selecionada' : 'Clique para selecionar'}</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
+            // Select Usuário
+            const selectUser = document.getElementById('turma-select');
+            selectUser.innerHTML = '<option value="">Selecione uma turma...</option>';
+            
+            // Select Edição Admin
+            const selectEdit = document.getElementById('edit-turma');
+            if(selectEdit) selectEdit.innerHTML = '';
 
-        function selectTurma(id) {
-            const turma = db.turmas.find(t => t.id === id);
-            if (!turma) return;
+            // Tabela Admin Turmas
+            const tabelaTurmas = document.getElementById('admin-turmas-list');
+            if(tabelaTurmas) tabelaTurmas.innerHTML = '';
 
-            document.getElementById('selectedTurmaId').value = id;
-            const indicator = document.getElementById('selectedTurmaIndicator');
-            indicator.innerText = `Turma: ${turma.nome}`;
-            indicator.className = "text-xs font-bold px-3.5 py-1.5 bg-red-100 text-[#CC092F] rounded-full";
-
-            const card = document.getElementById('registrationCard');
-            card.classList.remove('opacity-50', 'pointer-events-none');
-
-            renderUserTurmas();
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        // Máscara automática de telefone + orientação dinâmica
-        function handlePhoneInput(input, isModal = false) {
-            let digits = input.value.replace(/\D/g, '').substring(0, 11);
-            let formatted = '';
-
-            if (digits.length > 0) {
-                formatted = '(' + digits.substring(0, 2);
-            }
-            if (digits.length >= 3) {
-                formatted += ') ' + digits.substring(2, 7);
-            }
-            if (digits.length >= 8) {
-                formatted += '-' + digits.substring(7, 11);
-            }
-
-            input.value = formatted;
-
-            if (!isModal) {
-                const helper = document.getElementById('phoneHelper');
-                if (digits.length === 0) {
-                    helper.innerHTML = `<i class="fa-solid fa-circle-info text-[#CC092F]"></i><span>Digite apenas números (DDD + número). A máscara será aplicada automaticamente.</span>`;
-                    helper.className = "text-[11px] text-gray-500 mt-1 flex items-center gap-1";
-                } else if (digits.length < 10) {
-                    helper.innerHTML = `<i class="fa-solid fa-keyboard text-amber-600"></i><span>Continue digitando... Faltam ${11 - digits.length} dígito(s) para celular com DDD.</span>`;
-                    helper.className = "text-[11px] text-amber-600 font-medium mt-1 flex items-center gap-1";
-                } else {
-                    helper.innerHTML = `<i class="fa-solid fa-check-circle text-green-600"></i><span>Formato válido preenchido!</span>`;
-                    helper.className = "text-[11px] text-green-600 font-medium mt-1 flex items-center gap-1";
+            turmas.forEach(t => {
+                selectUser.innerHTML += `<option value="${t.id}">${t.nome} (${t.periodo})</option>`;
+                if(selectEdit) selectEdit.innerHTML += `<option value="${t.id}">${t.nome} (${t.periodo})</option>`;
+                
+                if(tabelaTurmas) {
+                    tabelaTurmas.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 font-mono text-xs text-gray-500">${t.id}</td>
+                            <td class="p-3 font-medium text-gray-800">${t.nome}</td>
+                            <td class="p-3 text-gray-600">${t.periodo}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="removerTurma('${t.id}')" class="text-red-600 hover:text-red-900"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
                 }
-            }
+            });
         }
 
-        async function handleStudentSubmit(e) {
+        // Salvar Aluno
+        async function salvarAluno(e) {
             e.preventDefault();
-            const turmaId = document.getElementById('selectedTurmaId').value;
-            if (!turmaId) {
-                showToast("Por favor, selecione uma turma primeiro.", "error");
-                return;
-            }
-
-            if (!supabaseClient) {
-                showToast("Supabase não configurado no código.", "error");
-                return;
-            }
-
-            const btnSubmit = e.target.querySelector('button[type="submit"]');
-            const originalText = btnSubmit.innerHTML;
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Salvando...</span>`;
-
-            const newStudentDB = {
-                id: 'a_' + Date.now(),
-                turma_id: turmaId,
-                nome: document.getElementById('nome').value.trim(),
+            const novoAluno = {
+                id: 'al_' + Date.now() + Math.random().toString(36.substring(2, 7)),
+                turma_id: document.getElementById('turma-select').value,
+                nome: document.getElementById('nome').value,
                 idade: parseInt(document.getElementById('idade').value),
-                fez_senai: document.getElementById('fezSenai').checked,
-                mora_proximo: document.getElementById('moraProximo').checked,
-                terminou_ensino_medio: document.getElementById('terminouEnsinoMedio').checked,
-                nivel_ti: parseInt(document.getElementById('nivelTi').value),
-                email: document.getElementById('email').value.trim(),
-                telefone: document.getElementById('telefone').value.trim()
+                fez_senai: document.getElementById('fez_senai').checked,
+                mora_proximo: document.getElementById('mora_proximo').checked,
+                terminou_ensino_medio: document.getElementById('terminou_ensino_medio').checked,
+                nivel_ti: parseInt(document.getElementById('nivel_ti').value),
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value
             };
 
-            try {
-                const { error } = await supabaseClient.from('alunos').insert([newStudentDB]);
-                if (error) throw error;
-
-                await loadFromDatabase();
-                showToast("Inscrição salva na nuvem com sucesso!");
-
-                document.getElementById('studentForm').reset();
-                document.getElementById('tiVal').innerText = "5";
-                document.getElementById('selectedTurmaId').value = "";
-                document.getElementById('selectedTurmaIndicator').innerText = "Nenhuma turma selecionada";
-                document.getElementById('selectedTurmaIndicator').className = "text-xs font-semibold px-3.5 py-1.5 bg-gray-100 text-gray-600 rounded-full";
-                document.getElementById('registrationCard').classList.add('opacity-50', 'pointer-events-none');
-                renderUserTurmas();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao salvar inscrição no banco de dados.", "error");
-            } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = originalText;
-            }
-        }
-
-        // ================= LÓGICA DO MODO ADMIN =================
-
-        function openAdminAuth() {
-            if (isAdminAuthenticated) {
-                switchView('admin');
-                return;
-            }
-            document.getElementById('authModal').classList.remove('hidden');
-            document.getElementById('adminPasswordInput').value = '';
-            setTimeout(() => document.getElementById('adminPasswordInput').focus(), 100);
-        }
-
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-        }
-
-        function verifyAdminPassword(e) {
-            e.preventDefault();
-            const pass = document.getElementById('adminPasswordInput').value;
-            if (pass === '!@1234') {
-                isAdminAuthenticated = true;
-                closeAuthModal();
-                document.getElementById('lockIcon').className = "fa-solid fa-lock-open text-green-600";
-                document.getElementById('adminBtnText').innerText = "Painel Admin";
-                showToast("Acesso administrativo liberado!");
-                switchView('admin');
+            const { error } = await supabaseClient.from('alunos').insert([novoAluno]);
+            if (error) {
+                alert('Erro ao realizar inscrição: ' + error.message);
             } else {
-                showToast("Senha incorreta! Tente novamente.", "error");
-                document.getElementById('adminPasswordInput').value = '';
+                alert('Inscrição realizada com sucesso!');
+                document.getElementById('student-form').reset();
+                document.getElementById('nivel-ti-val').innerText = '5';
             }
         }
 
-        function logoutAdmin() {
-            isAdminAuthenticated = false;
-            document.getElementById('lockIcon').className = "fa-solid fa-lock text-[#CC092F]";
-            document.getElementById('adminBtnText').innerText = "Área Restrita";
-            switchView('user');
-            showToast("Sessão administrativa encerrada.");
+        // Modal Administrador
+        function abrirAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            document.getElementById('admin-senha-input').value = '';
+            document.getElementById('admin-senha-input').focus();
+        }
+        function fecharAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+        function verificarSenhaAdmin() {
+            const senha = document.getElementById('admin-senha-input').value;
+            if (senha === '!@1234') {
+                fecharAdminModal();
+                document.getElementById('admin-view').classList.remove('hidden');
+                carregarPainelAdmin();
+            } else {
+                alert('Senha incorreta!');
+            }
+        }
+        function sairAdmin() {
+            document.getElementById('admin-view').classList.add('hidden');
         }
 
-        async function handleAddTurma(e) {
+        // Painel Admin Carregar Dados
+        async function carregarPainelAdmin() {
+            await carregarTurmas();
+            
+            const { data: alunos, error } = await supabaseClient.from('alunos').select('*, turmas(nome, periodo)').order('nome');
+            const { data: turmas } = await supabaseClient.from('turmas').select('*');
+            
+            if (error) {
+                console.error('Erro ao carregar alunos:', error);
+                return;
+            }
+
+            const tbody = document.getElementById('admin-alunos-list');
+            tbody.innerHTML = '';
+
+            alunos.forEach(a => {
+                const turmaNome = a.turmas ? `${a.turmas.nome} (${a.turmas.periodo})` : 'Turma não encontrada';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-medium text-gray-800">${a.nome}</td>
+                        <td class="p-3 text-gray-600">${turmaNome}</td>
+                        <td class="p-3 text-gray-600">${a.idade} anos</td>
+                        <td class="p-3 text-gray-600">${a.email}<br><span class="text-xs text-gray-400">${a.telefone || 'Sem telefone'}</span></td>
+                        <td class="p-3 text-center space-x-2">
+                            <button onclick="abrirEditarAluno('${a.id}')" class="text-blue-600 hover:text-blue-900" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="removerAluno('${a.id}')" class="text-red-600 hover:text-red-900" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Criar Turma
+        async function criarTurma(e) {
             e.preventDefault();
-            if (!supabaseClient) return;
-
-            const nome = document.getElementById('newTurmaName').value.trim();
-            const periodo = document.getElementById('newTurmaPeriodo').value.trim();
-
-            const newTurma = {
+            const novaTurma = {
                 id: 't_' + Date.now(),
-                nome: nome,
-                periodo: periodo
+                nome: document.getElementById('nova-turma-nome').value,
+                periodo: document.getElementById('nova-turma-periodo').value
             };
-
-            try {
-                const { error } = await supabaseClient.from('turmas').insert([newTurma]);
-                if (error) throw error;
-
-                await loadFromDatabase();
-                showToast("Turma criada no Supabase com sucesso!");
-                document.getElementById('newTurmaName').value = '';
-                document.getElementById('newTurmaPeriodo').value = '';
-                renderAdminTurmas();
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao criar turma.", "error");
+            const { error } = await supabaseClient.from('turmas').insert([novaTurma]);
+            if (error) alert('Erro ao criar turma: ' + error.message);
+            else {
+                document.getElementById('nova-turma-nome').value = '';
+                document.getElementById('nova-turma-periodo').value = '';
+                carregarPainelAdmin();
             }
         }
 
-        async function deleteTurma(id) {
-            if (!supabaseClient) return;
-            const alunosNaTurma = db.alunos.filter(a => a.turmaId === id).length;
-
-            try {
-                const { error } = await supabaseClient.from('turmas').delete().eq('id', id);
-                if (error) throw error;
-
-                await loadFromDatabase();
-                showToast(alunosNaTurma > 0 ? "Turma e alunos vinculados removidos!" : "Turma removida com sucesso!");
-                renderAdminTurmas();
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao remover turma.", "error");
+        // Remover Turma
+        async function removerTurma(id) {
+            if (confirm('Tem certeza que deseja remover esta turma? Todos os alunos vinculados serão removidos.')) {
+                await supabaseClient.from('turmas').delete().eq('id', id);
+                carregarPainelAdmin();
             }
         }
 
-        function renderAdminTurmas() {
-            const list = document.getElementById('adminTurmasList');
-            const filterSelect = document.getElementById('filterTurmaSelect');
-            const currentFilter = filterSelect.value;
-
-            filterSelect.innerHTML = `<option value="all">Todas as Turmas (${db.alunos.length})</option>` +
-                db.turmas.map(t => {
-                    const count = db.alunos.filter(a => a.turmaId === t.id).length;
-                    return `<option value="${t.id}">${t.nome} (${count})</option>`;
-                }).join('');
-            filterSelect.value = currentFilter || 'all';
-
-            if (db.turmas.length === 0) {
-                list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Nenhuma turma cadastrada.</p>`;
-                return;
-            }
-
-            list.innerHTML = db.turmas.map(t => {
-                const count = db.alunos.filter(a => a.turmaId === t.id).length;
-                return `
-                    <div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between gap-2">
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-800">${t.nome}</h4>
-                            <p class="text-xs text-gray-500">${t.periodo} • <span class="font-semibold text-[#CC092F]">${count} aluno(s)</span></p>
-                        </div>
-                        <button onclick="deleteTurma('${t.id}')" title="Remover turma" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderAdminAlunos() {
-            const list = document.getElementById('adminAlunosList');
-            const filterId = document.getElementById('filterTurmaSelect').value;
-            const filtered = filterId === 'all' ? db.alunos : db.alunos.filter(a => a.turmaId === filterId);
-
-            document.getElementById('totalAlunosBadge').innerText = filtered.length;
-
-            if (filtered.length === 0) {
-                list.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">Nenhum aluno encontrado para este filtro.</div>`;
-                return;
-            }
-
-            list.innerHTML = filtered.map(aluno => {
-                const turma = db.turmas.find(t => t.id === aluno.turmaId);
-                const turmaNome = turma ? turma.nome : 'Turma Removida';
-
-                return `
-                    <div class="p-4 rounded-xl border border-gray-200 hover:border-gray-300 bg-white transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <h4 class="font-bold text-gray-800 text-base">${aluno.nome}</h4>
-                                <span class="text-xs bg-gray-100 text-gray-700 font-semibold px-2.5 py-0.5 rounded-full">${aluno.idade} anos</span>
-                                <span class="text-xs bg-red-50 text-[#CC092F] font-semibold px-2.5 py-0.5 rounded-full">${turmaNome}</span>
-                            </div>
-                            <div class="text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
-                                <span><i class="fa-regular fa-envelope mr-1"></i>${aluno.email}</span>
-                                <span><i class="fa-solid fa-phone mr-1"></i>${aluno.telefone || 'Não informado'}</span>
-                                <span><i class="fa-solid fa-laptop-code mr-1"></i>TI: <strong>${aluno.nivelTi}/10</strong></span>
-                            </div>
-                            <div class="flex flex-wrap gap-1.5 pt-1">
-                                <span class="text-[11px] px-2 py-0.5 rounded-md ${aluno.fezSenai ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}">
-                                    Ex-aluno SENAI: ${aluno.fezSenai ? 'Sim' : 'Não'}
-                                </span>
-                                <span class="text-[11px] px-2 py-0.5 rounded-md ${aluno.moraProximo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}">
-                                    Mora próximo: ${aluno.moraProximo ? 'Sim' : 'Não'}
-                                </span>
-                                <span class="text-[11px] px-2 py-0.5 rounded-md ${aluno.terminouEnsinoMedio ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}">
-                                    Ensino Médio: ${aluno.terminouEnsinoMedio ? 'Concluído' : 'Cursando/Incompleto'}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="flex sm:flex-col gap-2 shrink-0">
-                            <button onclick="openEditModal('${aluno.id}')" class="flex-1 sm:flex-none bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>Editar</span>
-                            </button>
-                            <button onclick="deleteStudent('${aluno.id}')" class="flex-1 sm:flex-none bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-trash"></i>
-                                <span>Excluir</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function deleteStudent(id) {
-            if (!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient.from('alunos').delete().eq('id', id);
-                if (error) throw error;
-
-                await loadFromDatabase();
-                showToast("Aluno removido do banco de dados!");
-                renderAdminAlunos();
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao remover aluno.", "error");
+        // Remover Aluno
+        async function removerAluno(id) {
+            if (confirm('Deseja excluir este aluno do cadastro?')) {
+                await supabaseClient.from('alunos').delete().eq('id', id);
+                carregarPainelAdmin();
             }
         }
 
-        function openEditModal(id) {
-            const aluno = db.alunos.find(a => a.id === id);
-            if (!aluno) return;
+        // Editar Aluno
+        async function abrirEditarAluno(id) {
+            const { data: aluno } = await supabaseClient.from('alunos').select('*').eq('id', id).single();
+            if(!aluno) return;
 
-            const select = document.getElementById('editTurmaId');
-            select.innerHTML = db.turmas.map(t => `<option value="${t.id}">${t.nome} (${t.periodo})</option>`).join('');
+            document.getElementById('edit-id').value = aluno.id;
+            document.getElementById('edit-turma').value = aluno.turma_id;
+            document.getElementById('edit-nome').value = aluno.nome;
+            document.getElementById('edit-idade').value = aluno.idade;
+            document.getElementById('edit-fez_senai').checked = aluno.fez_senai;
+            document.getElementById('edit-mora_proximo').checked = aluno.mora_proximo;
+            document.getElementById('edit-terminou_ensino_medio').checked = aluno.terminou_ensino_medio;
+            document.getElementById('edit-nivel_ti').value = aluno.nivel_ti;
+            document.getElementById('edit-email').value = aluno.email;
+            document.getElementById('edit-telefone').value = aluno.telefone || '';
 
-            document.getElementById('editStudentId').value = aluno.id;
-            document.getElementById('editTurmaId').value = aluno.turmaId;
-            document.getElementById('editNome').value = aluno.nome;
-            document.getElementById('editIdade').value = aluno.idade;
-            document.getElementById('editEmail').value = aluno.email;
-            document.getElementById('editTelefone').value = aluno.telefone || '';
-            document.getElementById('editNivelTi').value = aluno.nivelTi;
-            document.getElementById('editTiVal').innerText = aluno.nivelTi;
-            document.getElementById('editFezSenai').checked = aluno.fezSenai;
-            document.getElementById('editMoraProximo').checked = aluno.moraProximo;
-            document.getElementById('editTerminouEnsinoMedio').checked = aluno.terminouEnsinoMedio;
-
-            document.getElementById('editStudentModal').classList.remove('hidden');
+            document.getElementById('edit-aluno-modal').classList.remove('hidden');
         }
 
-        function closeEditModal() {
-            document.getElementById('editStudentModal').classList.add('hidden');
+        function fecharEditModal() {
+            document.getElementById('edit-aluno-modal').classList.add('hidden');
         }
 
-        async function handleSaveEditedStudent(e) {
+        async function salvarEdicaoAluno(e) {
             e.preventDefault();
-            if (!supabaseClient) return;
-
-            const id = document.getElementById('editStudentId').value;
-            const updatedData = {
-                nome: document.getElementById('editNome').value.trim(),
-                idade: parseInt(document.getElementById('editIdade').value),
-                nivel_ti: parseInt(document.getElementById('editNivelTi').value),
-                email: document.getElementById('editEmail').value.trim(),
-                telefone: document.getElementById('editTelefone').value.trim(),
-                turma_id: document.getElementById('editTurmaId').value,
-                fez_senai: document.getElementById('editFezSenai').checked,
-                mora_proximo: document.getElementById('editMoraProximo').checked,
-                terminou_ensino_medio: document.getElementById('editTerminouEnsinoMedio').checked
+            const id = document.getElementById('edit-id').value;
+            const dadosAtualizados = {
+                turma_id: document.getElementById('edit-turma').value,
+                nome: document.getElementById('edit-nome').value,
+                idade: parseInt(document.getElementById('edit-idade').value),
+                fez_senai: document.getElementById('edit-fez_senai').checked,
+                mora_proximo: document.getElementById('edit-mora_proximo').checked,
+                terminou_ensino_medio: document.getElementById('edit-terminou_ensino_medio').checked,
+                nivel_ti: parseInt(document.getElementById('edit-nivel_ti').value),
+                email: document.getElementById('edit-email').value,
+                telefone: document.getElementById('edit-telefone').value
             };
 
-            try {
-                const { error } = await supabaseClient
-                    .from('alunos')
-                    .update(updatedData)
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                await loadFromDatabase();
-                closeEditModal();
-                showToast("Dados do aluno atualizados no Supabase!");
-                renderAdminAlunos();
-            } catch (err) {
-                console.error(err);
-                showToast("Erro ao atualizar dados do aluno.", "error");
+            const { error } = await supabaseClient.from('alunos').update(dadosAtualizados).eq('id', id);
+            if(error) alert('Erro ao atualizar: ' + error.message);
+            else {
+                fecharEditModal();
+                carregarPainelAdmin();
             }
         }
 
-        // ================= BACKUP / RESTAURAÇÃO JSON =================
+        // EXPORTAR PLANILHA CSV
+        async function exportarCSV() {
+            const { data: alunos, error } = await supabaseClient.from('alunos').select('*');
+            if (error) {
+                alert('Erro ao exportar dados.');
+                return;
+            }
 
-        function exportDataJson() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "dados.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("Backup dados.json exportado com sucesso!");
+            let csv = 'id,turma_id,nome,idade,fez_senai,mora_proximo,terminou_ensino_medio,nivel_ti,email,telefone\n';
+            alunos.forEach(a => {
+                csv += `"${a.id}","${a.turma_id}","${a.nome}",${a.idade},${a.fez_senai},${a.mora_proximo},${a.terminou_ensino_medio},${a.nivel_ti},"${a.email}","${a.telefone || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'alunos_senai.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
-        async function importDataJson(e) {
-            const file = e.target.files[0];
-            if (!file || !supabaseClient) return;
+        // IMPORTAR PLANILHA CSV
+        async function importarCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async function(event) {
-                try {
-                    const parsed = JSON.parse(event.target.result);
-                    if (parsed && Array.isArray(parsed.turmas) && Array.isArray(parsed.alunos)) {
-                        if (parsed.turmas.length > 0) {
-                            await supabaseClient.from('turmas').upsert(parsed.turmas);
-                        }
-                        if (parsed.alunos.length > 0) {
-                            const alunosMapped = parsed.alunos.map(a => ({
-                                id: a.id,
-                                turma_id: a.turmaId,
-                                nome: a.nome,
-                                idade: a.idade,
-                                fez_senai: a.fezSenai,
-                                mora_proximo: a.moraProximo,
-                                terminou_ensino_medio: a.terminouEnsinoMedio,
-                                nivel_ti: a.nivelTi,
-                                email: a.email,
-                                telefone: a.telefone
-                            }));
-                            await supabaseClient.from('alunos').upsert(alunosMapped);
-                        }
-                        await loadFromDatabase();
-                        showToast("Dados sincronizados com o Supabase a partir do dados.json!");
-                    } else {
-                        showToast("Formato inválido do arquivo dados.json", "error");
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const linhas = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                
+                // Ignorar cabeçalho
+                const registros = [];
+                for (let i = 1; i < linhas.length; i++) {
+                    const cols = linhas[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length >= 10) {
+                        registros.push({
+                            id: cols[0].replace(/"/g, ''),
+                            turma_id: cols[1].replace(/"/g, ''),
+                            nome: cols[2].replace(/"/g, ''),
+                            idade: parseInt(cols[3]) || 0,
+                            fez_senai: cols[4] === 'true',
+                            mora_proximo: cols[5] === 'true',
+                            terminou_ensino_medio: cols[6] === 'true',
+                            nivel_ti: parseInt(cols[7]) || 0,
+                            email: cols[8].replace(/"/g, ''),
+                            telefone: cols[9].replace(/"/g, '')
+                        });
                     }
-                } catch (err) {
-                    console.error(err);
-                    showToast("Erro ao importar JSON para o Supabase.", "error");
+                }
+
+                if (registros.length > 0) {
+                    // Substituir ou inserir no Supabase
+                    const { error } = await supabaseClient.from('alunos').upsert(registros);
+                    if (error) {
+                        alert('Erro ao importar CSV: ' + error.message);
+                    } else {
+                        alert(`Sucesso! ${registros.length} registros importados/atualizados.`);
+                        carregarPainelAdmin();
+                    }
+                } else {
+                    alert('Nenhum registro válido encontrado no CSV.');
                 }
             };
             reader.readAsText(file);
+            event.target.value = '';
         }
-
-        // Inicializa o aplicativo ao carregar a página
-        window.onload = async function() {
-            await loadFromDatabase();
-        };
     </script>
 </body>
 </html>
