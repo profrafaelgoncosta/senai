@@ -1113,20 +1113,20 @@
                 const count = db.alunos.filter(a => a.turmaId === t.id).length;
                 const sel = filterSelect.value === t.id;
                 return `
-                    <div onclick="pickAdminTurma('${t.id}')" class="cursor-pointer p-3.5 rounded-xl border-2 transition flex items-center justify-between gap-2 ${sel ? 'border-[#CC092F] bg-red-50/50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
-                        <div class="min-w-0">
-                            <h4 class="text-sm font-bold text-gray-800 truncate">${esc(t.nome)}</h4>
-                            <p class="text-xs text-gray-500">${esc(t.periodo)} • <span class="font-semibold text-[#CC092F]">${count} aluno(s)</span></p>
-                            ${t.trancada ? '<span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase bg-gray-800 text-white px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i>Trancada</span>' : '<span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase bg-green-100 text-green-800 px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock-open"></i>Aberta</span>'}
-                        </div>
-                        <div class="flex items-center shrink-0">
-                            <button onclick="event.stopPropagation(); toggleTurmaLock('${t.id}')" title="${t.trancada ? 'Reabrir inscrições' : 'Trancar para novos cadastros'}" class="p-2 rounded-lg transition ${t.trancada ? 'text-gray-800 hover:bg-gray-200' : 'text-gray-400 hover:text-gray-800 hover:bg-gray-100'}">
-                                <i class="fa-solid ${t.trancada ? 'fa-lock' : 'fa-lock-open'}"></i>
-                            </button>
-                            <button onclick="event.stopPropagation(); deleteTurma('${t.id}')" title="Remover turma" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition">
+                    <div onclick="pickAdminTurma('${t.id}')" class="cursor-pointer p-3.5 rounded-xl border-2 transition ${sel ? 'border-[#CC092F] bg-red-50/50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <h4 class="text-sm font-bold text-gray-800 truncate">${esc(t.nome)}</h4>
+                                <p class="text-xs text-gray-500">${esc(t.periodo)} • <span class="font-semibold text-[#CC092F]">${count} aluno(s)</span></p>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteTurma('${t.id}')" title="Remover turma" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition shrink-0">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
+                        <button onclick="event.stopPropagation(); toggleTurmaLock('${t.id}')" class="mt-3 w-full text-xs font-bold px-3 py-2 rounded-lg transition flex items-center justify-center gap-2 ${t.trancada ? 'bg-gray-800 hover:bg-black text-white' : 'bg-white hover:bg-red-50 text-[#CC092F] border border-[#CC092F]/40'}">
+                            <i class="fa-solid ${t.trancada ? 'fa-lock' : 'fa-lock-open'}"></i>
+                            <span>${t.trancada ? 'Trancada • Reabrir matrículas' : 'Aberta • Trancar matrículas'}</span>
+                        </button>
                     </div>
                 `;
             }).join('');
