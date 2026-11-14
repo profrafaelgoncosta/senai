@@ -67,6 +67,13 @@
         input[type="range"]::-webkit-slider-thumb:hover {
             transform: scale(1.15);
         }
+        /* Dashboard */
+        .donut-arc { animation: donutIn .9s ease-out; }
+        @keyframes donutIn { from { stroke-dasharray: 0 264; } }
+        .bar-grow { transform-origin: bottom; animation: barIn .6s ease-out; }
+        .hbar-grow { transform-origin: left; animation: hbarIn .6s ease-out; }
+        @keyframes barIn { from { transform: scaleY(0); } }
+        @keyframes hbarIn { from { transform: scaleX(0); } }
         /* Animações suaves */
         .fade-in {
             animation: fadeIn 0.3s ease-in-out;
@@ -133,7 +140,7 @@
     </header>
 
     <!-- Notificação Toast Flutuante -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <div id="toastContainer" class="fixed bottom-6 left-1/2 z-50 flex flex-col items-center space-y-2 pointer-events-none w-max max-w-[85vw]" style="transform: translateX(-50%) scale(1.15); transform-origin: bottom center;"></div>
 
     <!-- ===================================================================== -->
     <!-- TELA 1: MODO USUÁRIO (SELEÇÃO DE TURMA E CADASTRO DE ALUNO)           -->
@@ -319,33 +326,53 @@
     <main id="adminView" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 py-8 fade-in">
         
         <!-- Cabeçalho do Painel Admin -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="bg-red-100 text-[#CC092F] text-xs font-bold px-2.5 py-1 rounded-md uppercase">Modo Administrador</span>
-                    <h1 class="text-2xl font-extrabold text-gray-800">Gestão de Turmas e Alunos</h1>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+            <div class="h-1.5 bg-gradient-to-r from-[#CC092F] to-[#9E0624]"></div>
+            <div class="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                <div class="flex items-start gap-4 min-w-0">
+                    <div class="w-12 h-12 rounded-xl bg-red-50 text-[#CC092F] flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="inline-block bg-red-100 text-[#CC092F] text-[10px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">Modo Administrador</span>
+                        <h1 class="text-2xl font-extrabold text-gray-800 leading-tight mt-1">Gestão de Turmas e Alunos</h1>
+                        <p class="text-sm text-gray-500 mt-0.5">Gerencie turmas, edite cadastros e acompanhe os indicadores de cada turma.</p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">Gerencie as turmas disponíveis, edite cadastros ou exporte/importe a base completa em CSV (a planilha importada passa a ser a base oficial).</p>
+
+                <div class="flex flex-wrap items-center gap-3 shrink-0">
+                    <div class="flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
+                        <span class="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2.5">
+                            <i class="fa-solid fa-database"></i>Base CSV
+                        </span>
+                        <label class="cursor-pointer bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5" title="Substitui a base atual pelo conteúdo da planilha">
+                            <i class="fa-solid fa-file-import text-[#CC092F]"></i>
+                            <span>Importar</span>
+                            <input type="file" accept=".csv,text/csv" onchange="importDataCsv(event)" class="hidden">
+                        </label>
+                        <button onclick="exportDataCsv()" class="bg-gray-800 hover:bg-black text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5" title="Baixa toda a base atual em CSV (abre no Excel)">
+                            <i class="fa-solid fa-file-csv"></i>
+                            <span>Exportar</span>
+                        </button>
+                    </div>
+                    <div class="h-8 w-px bg-gray-200 hidden lg:block"></div>
+                    <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-[#CC092F] text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Sair</span>
+                    </button>
+                </div>
             </div>
-
-            <div class="flex flex-wrap items-center gap-2.5">
-                <label class="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5" title="Substitui a base atual pelo conteúdo da planilha">
-                    <i class="fa-solid fa-file-import text-[#CC092F]"></i>
-                    <span>Importar CSV</span>
-                    <input type="file" accept=".csv,text/csv" onchange="importDataCsv(event)" class="hidden">
-                </label>
-
-                <button onclick="exportDataCsv()" class="bg-gray-800 hover:bg-black text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Baixa toda a base atual em CSV (abre no Excel)">
-                    <i class="fa-solid fa-file-csv"></i>
-                    <span>Exportar CSV</span>
-                </button>
-
-                <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-[#CC092F] text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Sair</span>
-                </button>
+            <div class="border-t border-gray-100 bg-gray-50/70 px-5 md:px-6 py-3 flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs text-gray-500">
+                <span><i class="fa-solid fa-layer-group text-[#CC092F] mr-1.5"></i><strong id="adminStatTurmas" class="text-gray-800">0</strong> turma(s)</span>
+                <span><i class="fa-solid fa-users text-[#CC092F] mr-1.5"></i><strong id="adminStatAlunos" class="text-gray-800">0</strong> aluno(s)</span>
+                <span><i class="fa-solid fa-lock text-[#CC092F] mr-1.5"></i><strong id="adminStatTrancadas" class="text-gray-800">0</strong> trancada(s)</span>
+                <span class="sm:ml-auto text-gray-400"><i class="fa-solid fa-circle-info mr-1.5"></i>O CSV importado passa a ser a base oficial.</span>
             </div>
         </div>
+
+        <!-- Dashboard da turma selecionada -->
+        <section id="adminDashboard" class="mb-6 scroll-mt-24"></section>
+
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
@@ -393,7 +420,7 @@
                         </h2>
 
                         <!-- Filtro por Turma -->
-                        <select id="filterTurmaSelect" onchange="renderAdminAlunos()" class="text-sm border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#CC092F]">
+                        <select id="filterTurmaSelect" onchange="setAdminTurma(this.value)" class="text-sm border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#CC092F]">
                             <option value="all">Todas as Turmas</option>
                         </select>
                     </div>
@@ -541,6 +568,8 @@
         };
 
         let isAdminAuthenticated = false;
+        let lockColumnOk = true; // false se a coluna "trancada" ainda não existe no Supabase
+        const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         // Sistema de Notificações (Toast)
         function showToast(message, type = 'success') {
@@ -557,7 +586,7 @@
                 toast.style.opacity = '0';
                 toast.style.transition = 'opacity 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 5250);
         }
 
         // Carrega os dados do Supabase
@@ -579,7 +608,9 @@
                     .order('created_at', { ascending: true });
 
                 if (errTurmas) throw errTurmas;
-                db.turmas = turmasData || [];
+                const turmasList = turmasData || [];
+                if (turmasList.length) lockColumnOk = ('trancada' in turmasList[0]);
+                db.turmas = turmasList.map(t => ({ ...t, trancada: !!t.trancada }));
 
                 const { data: alunosData, error: errAlunos } = await supabaseClient
                     .from('alunos')
@@ -598,7 +629,8 @@
                     terminouEnsinoMedio: a.terminou_ensino_medio,
                     nivelTi: a.nivel_ti,
                     email: a.email,
-                    telefone: a.telefone
+                    telefone: a.telefone,
+                    criadoEm: a.created_at
                 }));
 
                 renderUserTurmas();
@@ -646,18 +678,33 @@
             }
 
             grid.innerHTML = db.turmas.map(turma => {
-                const isSelected = turma.id === selectedId;
+                const isSelected = turma.id === selectedId && !turma.trancada;
+                if (turma.trancada) {
+                    return `
+                    <div class="rounded-2xl p-5 border-2 border-transparent bg-gray-100/80 opacity-75 cursor-not-allowed flex flex-col justify-between" title="Inscrições encerradas para esta turma">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-500">${esc(turma.periodo)}</span>
+                                <i class="fa-solid fa-lock text-gray-400 text-lg"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-500 text-base leading-snug mt-2">${esc(turma.nome)}</h3>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-200 flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                            <i class="fa-solid fa-ban"></i><span>Turma trancada — inscrições encerradas</span>
+                        </div>
+                    </div>`;
+                }
                 return `
-                    <div onclick="selectTurma('${turma.id}')" 
+                    <div onclick="selectTurma('${turma.id}')"
                         class="cursor-pointer rounded-2xl p-5 border-2 transition-all duration-200 bg-white shadow-xs hover:shadow-md flex flex-col justify-between ${isSelected ? 'border-[#CC092F] ring-2 ring-[#CC092F]/20 bg-red-50/30' : 'border-transparent hover:border-gray-300'}">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-[#CC092F] text-white' : 'bg-gray-100 text-gray-600'}">
-                                    ${turma.periodo}
+                                    ${esc(turma.periodo)}
                                 </span>
                                 <i class="fa-solid ${isSelected ? 'fa-circle-check text-[#CC092F] text-lg' : 'fa-circle text-gray-200 text-lg'}"></i>
                             </div>
-                            <h3 class="font-bold text-gray-800 text-base leading-snug mt-2">${turma.nome}</h3>
+                            <h3 class="font-bold text-gray-800 text-base leading-snug mt-2">${esc(turma.nome)}</h3>
                         </div>
                         <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold ${isSelected ? 'text-[#CC092F]' : 'text-gray-500'}">
                             <span>${isSelected ? 'Turma Selecionada' : 'Clique para selecionar'}</span>
@@ -671,10 +718,14 @@
         function selectTurma(id) {
             const turma = db.turmas.find(t => t.id === id);
             if (!turma) return;
+            if (turma.trancada) {
+                showToast("Esta turma está trancada para novos cadastros.", "error");
+                return;
+            }
 
             document.getElementById('selectedTurmaId').value = id;
             const indicator = document.getElementById('selectedTurmaIndicator');
-            indicator.innerText = `Turma: ${turma.nome}`;
+            indicator.innerText = `Turma: ${esc(turma.nome)}`;
             indicator.className = "text-xs font-bold px-3.5 py-1.5 bg-red-100 text-[#CC092F] rounded-full";
 
             const card = document.getElementById('registrationCard');
@@ -729,6 +780,19 @@
                 return;
             }
 
+            try {
+                const { data: chk, error: chkErr } = await supabaseClient.from('turmas').select('trancada').eq('id', turmaId).maybeSingle();
+                if (!chkErr && chk && chk.trancada) {
+                    document.getElementById('selectedTurmaId').value = "";
+                    document.getElementById('selectedTurmaIndicator').innerText = "Nenhuma turma selecionada";
+                    document.getElementById('selectedTurmaIndicator').className = "text-xs font-semibold px-3.5 py-1.5 bg-gray-100 text-gray-600 rounded-full";
+                    document.getElementById('registrationCard').classList.add('opacity-50', 'pointer-events-none');
+                    await loadFromDatabase();
+                    showToast("Esta turma foi trancada para novos cadastros. Escolha outra turma.", "error");
+                    return;
+                }
+            } catch (_) { /* segue o fluxo normal */ }
+
             const btnSubmit = e.target.querySelector('button[type="submit"]');
             const originalText = btnSubmit.innerHTML;
             btnSubmit.disabled = true;
@@ -769,6 +833,176 @@
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = originalText;
             }
+        }
+
+        // ================= SELEÇÃO / TRANCAR TURMA =================
+        function renderAdminStats() {
+            document.getElementById('adminStatTurmas').innerText = db.turmas.length;
+            document.getElementById('adminStatAlunos').innerText = db.alunos.length;
+            document.getElementById('adminStatTrancadas').innerText = db.turmas.filter(t => t.trancada).length;
+        }
+
+        function setAdminTurma(id) {
+            document.getElementById('filterTurmaSelect').value = id;
+            renderAdminTurmas();
+            renderAdminAlunos();
+        }
+
+        function pickAdminTurma(id) {
+            const atual = document.getElementById('filterTurmaSelect').value;
+            setAdminTurma(atual === id ? 'all' : id);
+            if (atual !== id) document.getElementById('adminDashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function toggleTurmaLock(id) {
+            const t = db.turmas.find(x => x.id === id);
+            if (!t || !supabaseClient) return;
+            const novo = !t.trancada;
+            const { error } = await supabaseClient.from('turmas').update({ trancada: novo }).eq('id', id);
+            if (error) {
+                console.error(error);
+                if (!lockColumnOk || /trancada/i.test(error.message || '')) {
+                    alert("A coluna 'trancada' ainda não existe na tabela turmas do Supabase.\n\nRode no SQL Editor:\n\nalter table turmas add column if not exists trancada boolean not null default false;");
+                } else {
+                    showToast("Erro ao alterar o status da turma.", "error");
+                }
+                return;
+            }
+            await loadFromDatabase();
+            renderAdminTurmas();
+            renderAdminAlunos();
+            showToast(novo ? "Turma trancada para novos cadastros." : "Turma reaberta para novos cadastros.");
+        }
+
+        // ================= DASHBOARD DA TURMA =================
+        const dayKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+        function dashCard(title, icon, body) {
+            return `<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fa-solid ${icon} text-[#CC092F]"></i>${title}</h3>${body}</div>`;
+        }
+
+        function dashKpi(icon, label, value, sub, color) {
+            return `<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full opacity-10" style="background:${color}"></div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:${color}1A;color:${color}"><i class="fa-solid ${icon}"></i></div>
+                <div class="text-3xl font-extrabold text-gray-800 leading-none">${value}</div>
+                <div class="text-xs font-semibold text-gray-500 mt-1.5">${label}</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">${sub}</div></div>`;
+        }
+
+        function dashDonut(p, title, sub, color, icon) {
+            const c = 2 * Math.PI * 42;
+            return `<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-center gap-4">
+                <div class="relative w-24 h-24 shrink-0">
+                    <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#F3F4F6" stroke-width="11"/>
+                        <circle class="donut-arc" cx="50" cy="50" r="42" fill="none" stroke="${color}" stroke-width="11" stroke-linecap="${p ? 'round' : 'butt'}" stroke-dasharray="${(c * p / 100).toFixed(1)} ${c.toFixed(1)}"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-xl font-extrabold text-gray-800">${p}%</div>
+                </div>
+                <div><div class="text-[11px] font-bold uppercase tracking-wider text-gray-400"><i class="fa-solid ${icon} mr-1" style="color:${color}"></i>${title}</div>
+                <p class="text-sm text-gray-600 mt-1 leading-snug">${sub}</p></div></div>`;
+        }
+
+        function dashBars(items) {
+            const max = Math.max(1, ...items.map(i => i.v));
+            return `<div class="flex items-end gap-1.5 h-36">` + items.map(i =>
+                `<div class="flex-1 h-full flex flex-col justify-end items-center min-w-0">
+                    <span class="text-[11px] font-bold text-gray-600 mb-1">${i.v || ''}</span>
+                    <div class="bar-grow w-full rounded-t-md ${i.cls}" style="height:${i.v ? Math.max(4, i.v / max * 80) : 0}%"></div>
+                </div>`).join('') +
+                `</div><div class="flex gap-1.5 mt-1.5">` + items.map(i => `<span class="flex-1 text-center text-[10px] font-semibold text-gray-400 truncate">${i.label}</span>`).join('') + `</div>`;
+        }
+
+        function renderDashboard() {
+            const box = document.getElementById('adminDashboard');
+            if (!box) return;
+            const id = document.getElementById('filterTurmaSelect').value || 'all';
+            const turma = db.turmas.find(t => t.id === id);
+            const al = turma ? db.alunos.filter(a => a.turmaId === id) : db.alunos;
+            const n = al.length;
+            const avg = k => n ? al.reduce((s, a) => s + (Number(a[k]) || 0), 0) / n : 0;
+            const pct = k => n ? Math.round(al.filter(a => a[k]).length / n * 100) : 0;
+
+            const header = `<div class="rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4" style="background:linear-gradient(135deg,#CC092F 0%,#8A0521 100%)">
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-widest text-white/70"><i class="fa-solid fa-chart-pie mr-1.5"></i>Dashboard ${turma ? 'da turma' : 'geral'}</div>
+                    <h2 class="text-2xl font-extrabold mt-1">${turma ? esc(turma.nome) : 'Visão geral — todas as turmas'}</h2>
+                    <div class="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                        <span class="bg-white/15 px-2.5 py-1 rounded-full font-semibold">${turma ? esc(turma.periodo) : db.turmas.length + ' turma(s) • ' + db.turmas.filter(t => t.trancada).length + ' trancada(s)'}</span>
+                        ${turma ? `<span class="px-2.5 py-1 rounded-full font-bold ${turma.trancada ? 'bg-black/30' : 'bg-white text-[#CC092F]'}"><i class="fa-solid ${turma.trancada ? 'fa-lock' : 'fa-lock-open'} mr-1"></i>${turma.trancada ? 'Inscrições trancadas' : 'Inscrições abertas'}</span>` : ''}
+                    </div>
+                </div>
+                ${turma ? `<div class="flex flex-wrap gap-2 shrink-0">
+                    <button onclick="toggleTurmaLock('${turma.id}')" class="bg-white/15 hover:bg-white/25 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition"><i class="fa-solid ${turma.trancada ? 'fa-lock-open' : 'fa-lock'} mr-1.5"></i>${turma.trancada ? 'Reabrir inscrições' : 'Trancar inscrições'}</button>
+                    <button onclick="setAdminTurma('all')" class="bg-white/15 hover:bg-white/25 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition"><i class="fa-solid fa-xmark mr-1.5"></i>Ver todas</button>
+                </div>` : ''}
+            </div>`;
+
+            if (n === 0) {
+                box.innerHTML = header + `<div class="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center text-gray-400 text-sm mt-4"><i class="fa-solid fa-chart-simple text-3xl mb-2 block"></i>Ainda não há alunos para gerar indicadores.</div>`;
+                return;
+            }
+
+            const idades = al.map(a => Number(a.idade) || 0);
+            const avgTi = avg('nivelTi');
+            const semEM = al.filter(a => !a.terminouEnsinoMedio).length;
+
+            const bands = [['≤15', a => a <= 15], ['16-17', a => a >= 16 && a <= 17], ['18-20', a => a >= 18 && a <= 20], ['21-25', a => a >= 21 && a <= 25], ['26-35', a => a >= 26 && a <= 35], ['36+', a => a >= 36]]
+                .map(([label, fn]) => ({ label, v: idades.filter(fn).length, cls: 'bg-gradient-to-t from-[#9E0624] to-[#CC092F]' }));
+            const topBand = bands.reduce((m, b) => b.v > m.v ? b : m, bands[0]).label;
+
+            const tiLevels = [...Array(11)].map((_, l) => ({ label: l, v: al.filter(a => Number(a.nivelTi) === l).length, cls: l <= 3 ? 'bg-amber-400' : l <= 7 ? 'bg-sky-500' : 'bg-emerald-500' }));
+            const topTi = tiLevels.reduce((m, b) => b.v > m.v ? b : m, tiLevels[0]).label;
+
+            const now = new Date();
+            const days = [...Array(14)].map((_, i) => { const d = new Date(now); d.setDate(d.getDate() - (13 - i)); return d; });
+            const perDay = {};
+            al.forEach(a => { if (a.criadoEm) { const k = dayKey(new Date(a.criadoEm)); perDay[k] = (perDay[k] || 0) + 1; } });
+            const dayItems = days.map(d => ({ label: d.getDate(), v: perDay[dayKey(d)] || 0, cls: 'bg-[#CC092F]' }));
+            const last7 = dayItems.slice(7).reduce((s, d) => s + d.v, 0);
+
+            const kpis = `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                ${dashKpi('fa-users', 'Alunos inscritos', n, turma ? 'nesta turma' : 'em ' + db.turmas.length + ' turma(s)', '#CC092F')}
+                ${dashKpi('fa-cake-candles', 'Idade média', avg('idade').toFixed(1), 'de ' + Math.min(...idades) + ' a ' + Math.max(...idades) + ' anos', '#7C3AED')}
+                ${dashKpi('fa-laptop-code', 'Nível médio de TI', avgTi.toFixed(1) + '<span class="text-base text-gray-400">/10</span>', avgTi >= 7 ? 'perfil avançado' : avgTi >= 4 ? 'perfil intermediário' : 'perfil iniciante', '#0284C7')}
+                ${dashKpi('fa-bolt', 'Inscrições (7 dias)', last7, 'últimos 7 dias', '#059669')}
+            </div>`;
+
+            const donuts = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${dashDonut(pct('fezSenai'), 'Ex-alunos SENAI', `${al.filter(a => a.fezSenai).length} de ${n} já fizeram cursos no SENAI.`, '#CC092F', 'fa-id-card')}
+                ${dashDonut(pct('moraProximo'), 'Moram próximo', `${al.filter(a => a.moraProximo).length} de ${n} moram perto da unidade.`, '#0284C7', 'fa-location-dot')}
+                ${dashDonut(pct('terminouEnsinoMedio'), 'Ensino Médio concluído', `${n - semEM} de ${n} já concluíram o Ensino Médio.`, '#059669', 'fa-graduation-cap')}
+            </div>`;
+
+            const charts = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                ${dashCard('Distribuição por faixa etária', 'fa-chart-column', dashBars(bands))}
+                ${dashCard('Nível de conhecimento em TI (0–10)', 'fa-chart-simple', dashBars(tiLevels) +
+                    `<div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] text-gray-500"><span><i class="fa-solid fa-square text-amber-400 mr-1"></i>Iniciante (0–3)</span><span><i class="fa-solid fa-square text-sky-500 mr-1"></i>Intermediário (4–7)</span><span><i class="fa-solid fa-square text-emerald-500 mr-1"></i>Avançado (8–10)</span></div>`)}
+            </div>`;
+
+            let side;
+            if (turma) {
+                const ins = [
+                    ['fa-laptop-code', `Nível médio de TI ${avgTi.toFixed(1)}/10 — ${avgTi >= 7 ? 'base técnica forte' : avgTi >= 4 ? 'perfil intermediário' : 'maioria iniciante, considere nivelamento'}. Nota mais comum: ${topTi}.`],
+                    ['fa-user-clock', `Faixa etária predominante: ${topBand} anos.`],
+                    ['fa-location-dot', `${pct('moraProximo')}% dos alunos moram próximo à unidade.`],
+                    ['fa-graduation-cap', semEM ? `${semEM} aluno(s) ainda sem Ensino Médio concluído.` : 'Todos concluíram o Ensino Médio.'],
+                    ['fa-id-card', `${pct('fezSenai')}% já tiveram experiência prévia no SENAI.`]
+                ];
+                side = dashCard('Destaques da turma', 'fa-lightbulb', `<ul class="space-y-3">${ins.map(([ic, tx]) => `<li class="flex items-start gap-3 text-sm text-gray-600"><span class="w-7 h-7 rounded-lg bg-red-50 text-[#CC092F] flex items-center justify-center text-xs shrink-0"><i class="fa-solid ${ic}"></i></span><span class="pt-0.5">${tx}</span></li>`).join('')}</ul>`);
+            } else {
+                const rows = db.turmas.map(t => ({ t, v: db.alunos.filter(a => a.turmaId === t.id).length })).sort((a, b) => b.v - a.v);
+                const max = Math.max(1, ...rows.map(r => r.v));
+                side = dashCard('Alunos por turma', 'fa-ranking-star', `<div class="space-y-3 max-h-60 overflow-y-auto pr-1">${rows.map(r => `
+                    <div><div class="flex justify-between text-xs mb-1"><span class="font-semibold text-gray-700 truncate pr-2">${r.t.trancada ? '<i class="fa-solid fa-lock text-gray-400 mr-1"></i>' : ''}${esc(r.t.nome)}</span><span class="font-bold text-[#CC092F]">${r.v}</span></div>
+                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden"><div class="hbar-grow h-full rounded-full bg-gradient-to-r from-[#CC092F] to-[#E84A67]" style="width:${r.v / max * 100}%"></div></div></div>`).join('')}</div>`);
+            }
+
+            const daily = dashCard('Inscrições nos últimos 14 dias', 'fa-calendar-days', al.some(a => a.criadoEm) ? dashBars(dayItems) : '<p class="text-sm text-gray-400">Sem datas de inscrição registradas.</p>');
+
+            box.innerHTML = header + `<div class="space-y-4 mt-4">${kpis}${donuts}${charts}<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">${daily}${side}</div></div>`;
         }
 
         // ================= LÓGICA DO MODO ADMIN =================
@@ -859,14 +1093,16 @@
         function renderAdminTurmas() {
             const list = document.getElementById('adminTurmasList');
             const filterSelect = document.getElementById('filterTurmaSelect');
+            renderAdminStats();
             const currentFilter = filterSelect.value;
 
             filterSelect.innerHTML = `<option value="all">Todas as Turmas (${db.alunos.length})</option>` +
                 db.turmas.map(t => {
                     const count = db.alunos.filter(a => a.turmaId === t.id).length;
-                    return `<option value="${t.id}">${t.nome} (${count})</option>`;
+                    return `<option value="${t.id}">${esc(t.nome)} (${count})</option>`;
                 }).join('');
             filterSelect.value = currentFilter || 'all';
+            if (!filterSelect.value) filterSelect.value = 'all';
 
             if (db.turmas.length === 0) {
                 list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Nenhuma turma cadastrada.</p>`;
@@ -875,21 +1111,29 @@
 
             list.innerHTML = db.turmas.map(t => {
                 const count = db.alunos.filter(a => a.turmaId === t.id).length;
+                const sel = filterSelect.value === t.id;
                 return `
-                    <div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between gap-2">
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-800">${t.nome}</h4>
-                            <p class="text-xs text-gray-500">${t.periodo} • <span class="font-semibold text-[#CC092F]">${count} aluno(s)</span></p>
+                    <div onclick="pickAdminTurma('${t.id}')" class="cursor-pointer p-3.5 rounded-xl border-2 transition flex items-center justify-between gap-2 ${sel ? 'border-[#CC092F] bg-red-50/50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}">
+                        <div class="min-w-0">
+                            <h4 class="text-sm font-bold text-gray-800 truncate">${esc(t.nome)}</h4>
+                            <p class="text-xs text-gray-500">${esc(t.periodo)} • <span class="font-semibold text-[#CC092F]">${count} aluno(s)</span></p>
+                            ${t.trancada ? '<span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase bg-gray-800 text-white px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i>Trancada</span>' : '<span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase bg-green-100 text-green-800 px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock-open"></i>Aberta</span>'}
                         </div>
-                        <button onclick="deleteTurma('${t.id}')" title="Remover turma" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center shrink-0">
+                            <button onclick="event.stopPropagation(); toggleTurmaLock('${t.id}')" title="${t.trancada ? 'Reabrir inscrições' : 'Trancar para novos cadastros'}" class="p-2 rounded-lg transition ${t.trancada ? 'text-gray-800 hover:bg-gray-200' : 'text-gray-400 hover:text-gray-800 hover:bg-gray-100'}">
+                                <i class="fa-solid ${t.trancada ? 'fa-lock' : 'fa-lock-open'}"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteTurma('${t.id}')" title="Remover turma" class="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
         function renderAdminAlunos() {
+            renderDashboard();
             const list = document.getElementById('adminAlunosList');
             const filterId = document.getElementById('filterTurmaSelect').value;
             const filtered = filterId === 'all' ? db.alunos : db.alunos.filter(a => a.turmaId === filterId);
@@ -909,12 +1153,12 @@
                     <div class="p-4 rounded-xl border border-gray-200 hover:border-gray-300 bg-white transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="space-y-1.5">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h4 class="font-bold text-gray-800 text-base">${aluno.nome}</h4>
+                                <h4 class="font-bold text-gray-800 text-base">${esc(aluno.nome)}</h4>
                                 <span class="text-xs bg-gray-100 text-gray-700 font-semibold px-2.5 py-0.5 rounded-full">${aluno.idade} anos</span>
-                                <span class="text-xs bg-red-50 text-[#CC092F] font-semibold px-2.5 py-0.5 rounded-full">${turmaNome}</span>
+                                <span class="text-xs bg-red-50 text-[#CC092F] font-semibold px-2.5 py-0.5 rounded-full">${esc(turmaNome)}</span>
                             </div>
                             <div class="text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
-                                <span><i class="fa-regular fa-envelope mr-1"></i>${aluno.email}</span>
+                                <span><i class="fa-regular fa-envelope mr-1"></i>${esc(aluno.email)}</span>
                                 <span><i class="fa-solid fa-phone mr-1"></i>${aluno.telefone || 'Não informado'}</span>
                                 <span><i class="fa-solid fa-laptop-code mr-1"></i>TI: <strong>${aluno.nivelTi}/10</strong></span>
                             </div>
@@ -966,7 +1210,7 @@
             if (!aluno) return;
 
             const select = document.getElementById('editTurmaId');
-            select.innerHTML = db.turmas.map(t => `<option value="${t.id}">${t.nome} (${t.periodo})</option>`).join('');
+            select.innerHTML = db.turmas.map(t => `<option value="${t.id}">${esc(t.nome)} (${esc(t.periodo)})</option>`).join('');
 
             document.getElementById('editStudentId').value = aluno.id;
             document.getElementById('editTurmaId').value = aluno.turmaId;
@@ -1024,7 +1268,7 @@
 
         // ================= EXPORTAR / IMPORTAR CSV =================
         // Uma linha por aluno (com os dados da turma). Turmas sem alunos geram uma linha só com a turma.
-        const CSV_COLUMNS = ['turma_id','turma_nome','turma_periodo','aluno_id','aluno_nome','idade','fez_senai','mora_proximo','terminou_ensino_medio','nivel_ti','email','telefone'];
+        const CSV_COLUMNS = ['turma_id','turma_nome','turma_periodo','turma_trancada','aluno_id','aluno_nome','idade','fez_senai','mora_proximo','terminou_ensino_medio','nivel_ti','email','telefone'];
         const CSV_DELIM = ';'; // padrão do Excel em português
 
         function csvCell(v) {
@@ -1040,10 +1284,10 @@
             db.turmas.forEach(t => {
                 const alunos = db.alunos.filter(a => a.turmaId === t.id);
                 if (alunos.length === 0) {
-                    rows.push([t.id, t.nome, t.periodo, '', '', '', '', '', '', '', '', ''].map(csvCell).join(CSV_DELIM));
+                    rows.push([t.id, t.nome, t.periodo, sn(t.trancada), '', '', '', '', '', '', '', '', ''].map(csvCell).join(CSV_DELIM));
                 } else {
                     alunos.forEach(a => rows.push([
-                        t.id, t.nome, t.periodo, a.id, a.nome, a.idade,
+                        t.id, t.nome, t.periodo, sn(t.trancada), a.id, a.nome, a.idade,
                         sn(a.fezSenai), sn(a.moraProximo), sn(a.terminouEnsinoMedio),
                         a.nivelTi, a.email, a.telefone
                     ].map(csvCell).join(CSV_DELIM)));
@@ -1107,7 +1351,7 @@
 
             const norm = h => String(h).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_');
             const headers = raw[0].map(norm);
-            const missing = CSV_COLUMNS.filter(c => !headers.includes(c));
+            const missing = CSV_COLUMNS.filter(c => c !== 'turma_trancada' && !headers.includes(c));
             if (missing.length) throw { list: ['Colunas ausentes no cabeçalho: ' + missing.join(', ') + '. Use o arquivo exportado pelo sistema como modelo.'] };
 
             const errors = [];
@@ -1137,10 +1381,13 @@
                         || `t_${stamp}_${++seq}`;
                     turmaKeyToId.set(tKey, tId);
                 }
+                const hasLock = headers.includes('turma_trancada');
+                const tLock = hasLock ? parseBoolCsv(r.turma_trancada) : !!(db.turmas.find(t => t.id === tId) || {}).trancada;
+                if (tLock === null) { errors.push(`Linha ${line}: use Sim/Não na coluna turma_trancada.`); continue; }
                 const existing = turmasMap.get(tId);
-                if (!existing) turmasMap.set(tId, { id: tId, nome: tNome, periodo: tPeriodo });
-                else if (existing.nome !== tNome || existing.periodo !== tPeriodo) {
-                    errors.push(`Linha ${line}: a turma ${tId} aparece com nome/período diferente de outra linha.`);
+                if (!existing) turmasMap.set(tId, { id: tId, nome: tNome, periodo: tPeriodo, trancada: tLock });
+                else if (existing.nome !== tNome || existing.periodo !== tPeriodo || existing.trancada !== tLock) {
+                    errors.push(`Linha ${line}: a turma ${tId} aparece com nome/período/trancada diferente de outra linha.`);
                     continue;
                 }
 
@@ -1203,7 +1450,8 @@
 
                 const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out; };
 
-                for (const part of chunk(parsed.turmas, 500)) {
+                const turmasPayload = lockColumnOk ? parsed.turmas : parsed.turmas.map(t => ({ id: t.id, nome: t.nome, periodo: t.periodo }));
+                for (const part of chunk(turmasPayload, 500)) {
                     const { error } = await supabaseClient.from('turmas').upsert(part);
                     if (error) throw error;
                 }
