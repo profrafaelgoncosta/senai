@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENAI - Avaliação Online</title>
+<link rel="icon" type="image/png" href="https://i.imgur.com/MLF4wnr.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>
+body{background:#E8E8E8;color:#1F2937}
+.fade-in{animation:fi .3s ease-in-out}@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mask{-webkit-text-security:disc;text-security:disc}
+.exam,.exam *{user-select:none;-webkit-user-select:none}
+.bar{transition:width .5s}
+</style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+<div class="bg-[#CC092F] text-white text-[11px] font-semibold tracking-wider py-1.5 px-4 md:px-12 flex justify-between">
+  <div class="hidden sm:flex space-x-4"><span>FIESP</span><span>CIESP</span><span>SESI</span><span class="underline decoration-2 underline-offset-4">SENAI</span><span>IRS</span></div>
+  <span class="ml-auto opacity-90">Portal de Avaliações Online</span>
+</div>
+<header class="bg-white shadow-sm sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+    <a href="#" onclick="location.reload()"><img src="https://i.imgur.com/EueCxpD.png" alt="SENAI" class="h-11 md:h-12"></a>
+    <div id="who" class="flex items-center gap-3 text-sm"></div>
+  </div>
+  <div class="h-1 bg-[#CC092F] w-full"></div>
+</header>
+<div id="toasts" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center space-y-2 pointer-events-none max-w-[90vw]"></div>
+<main id="app" class="flex-grow w-full max-w-6xl mx-auto px-4 py-8"></main>
+<footer class="bg-white border-t border-gray-200 py-5 text-center text-xs text-gray-500 mt-12">© SENAI - Serviço Nacional de Aprendizagem Industrial | Sistema de Avaliação Online</footer>
+
+<script>
+// ====================== CONEXÃO COM O BANCO (Supabase) ======================
+const SUPABASE_URL = 'https://jwczskeuxvpqbsvriwjg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_aSKP4tD061AnAbxxYnx1PA_U2kqdULm';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const S = {}, A = {tab: 't'}, P = {};            // S=sessão · A=admin · P=prova em andamento
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const C = {
+  b: 'bg-[#CC092F] hover:bg-[#9E0624] text-white font-semibold rounded-xl px-4 py-2.5 text-sm transition shadow-sm disabled:opacity-50',
+  g: 'border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold rounded-xl px-4 py-2.5 text-sm transition',
+  k: 'bg-white rounded-2xl shadow-sm border border-gray-200 p-6',
+  i: 'w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:border-[#CC092F] focus:ring-2 focus:ring-[#CC092F]/20 outline-none text-sm',
+  l: 'block text-xs font-semibold text-gray-600 mb-1 mt-3'
+};
+const app = h => { $('app').innerHTML = `<div class="fade-in">${h}</div>`; window.scrollTo(0, 0); };
+
+function toast(m, err) {
+  const t = document.createElement('div');
+  t.className = `${err ? 'bg-red-700' : 'bg-gray-900'} text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 fade-in`;
+  t.innerHTML = `<i class="fa-solid ${err ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i><span>${esc(m)}</span>`;
+  $('toasts').appendChild(t); setTimeout(() => t.remove(), 4500);
+}
+async function api(action, data = {}) {
+  try {
+    const { data: r, error } = await sb.rpc('quiz_api', { p_action: action, p_args: { ...data, token: S.tok || null } });
+    if (error) throw error;
+    if (r.auth) { toast(r.msg, 1); login(); }
+    return r;
+  } catch (e) { console.error(e); return { ok: false, msg: 'Erro ao falar com o banco. Verifique se o SQL foi aplicado.' }; }
+}
+const sel = (id, opts, cur) => `<select id="${id}" class="${C.i}">${opts}</select>`;
+const bannerHtml = (t, s) => `<div class="bg-gradient-to-r from-[#CC092F] via-[#B30728] to-[#8C041E] rounded-2xl shadow-lg mb-8 text-white relative overflow-hidden">
+  <div class="p-6 md:p-10 relative z-10"><span class="inline-block bg-white/20 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3">Avaliação Online</span>
+  <h1 class="text-2xl md:text-4xl font-extrabold leading-tight mb-2">${t}</h1><p class="text-red-100 text-sm md:text-base">${s}</p></div>
+  <div class="absolute right-0 top-0 h-full w-1/3 bg-black/10 skew-x-12 translate-x-12"></div></div>`;
+function setWho(admin) {
+  $('who').innerHTML = (S.nome ? `<span class="hidden sm:inline text-gray-600"><i class="fa-solid fa-user text-[#CC092F] mr-1"></i>${esc(S.nome)}</span>` : '') +
+    (admin ? '<span class="bg-red-100 text-[#CC092F] text-[10px] font-bold px-2.5 py-1 rounded-md uppercase">Administrador</span>' : '') +
+    ((S.mat || S.tok) ? `<button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-[#CC092F] text-xs font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-right-from-bracket mr-1"></i>Sair</button>` : '');
+}
+function modal(h) {
+  const d = document.createElement('div'); d.id = 'mdl';
+  d.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto';
+  d.innerHTML = `<div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl fade-in my-8">${h}
+    <div class="text-right mt-4"><button class="${C.g}" onclick="$('mdl').remove()">Fechar</button></div></div>`;
+  document.body.appendChild(d);
+}
+
+// ====================== LOGIN ======================
+function login() {
+  Object.keys(S).forEach(k => delete S[k]); setWho();
+  app(bannerHtml('Bem-vindo à Avaliação Online', 'Digite o seu código de matrícula para acessar os questionários da sua turma.') +
+    `<div class="${C.k} max-w-md mx-auto text-center"><div class="w-12 h-12 bg-red-100 text-[#CC092F] rounded-full flex items-center justify-center mx-auto mb-3 text-xl"><i class="fa-solid fa-id-card"></i></div>
+    <h2 class="text-lg font-bold mb-4">Acesso</h2>
+    <input id="cod" type="text" autocomplete="off" placeholder="Matrícula" class="${C.i} text-center text-lg tracking-widest"
+      oninput="this.classList.toggle('mask',this.value[0]==='!')" onkeydown="if(event.key==='Enter')doLogin()">
+    <p id="err" class="text-[#CC092F] text-sm mt-3 min-h-[20px]"></p>
+    <button onclick="doLogin()" class="${C.b} w-full mt-2">Entrar</button></div>`);
+  $('cod').focus();
+}
+async function doLogin() {
+  const r = await api('login', { codigo: $('cod').value });
+  if (!r.ok) return $('err').textContent = r.msg;
+  if (r.tipo === 'admin') { S.tok = r.token; return admin(); }
+  Object.assign(S, { mat: r.matricula, nome: r.nome, turmas: r.turmas }); setWho();
+  r.turmas.length > 1 ? pickTurma() : openTurma(r.turmas[0].id);
+}
+async function logout() { if (S.tok) await api('logout'); login(); }
+
+// ====================== ALUNO ======================
+function pickTurma() {
+  app(bannerHtml(`Olá, ${esc(S.nome)}!`, 'Você está em mais de uma turma. Escolha a turma para continuar.') +
+    `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${S.turmas.map(t => `
+    <div onclick="openTurma(${t.id})" class="bg-white rounded-2xl p-5 border-2 border-transparent hover:border-[#CC092F] shadow-sm cursor-pointer transition">
+      <i class="fa-solid fa-layer-group text-[#CC092F] mb-2"></i><h3 class="font-bold">${esc(t.nome)}</h3>
+      <p class="text-xs text-gray-500 mt-1">${esc(t.professor ? 'Prof. ' + t.professor : t.curso)}</p></div>`).join('')}</div>`);
+}
+async function openTurma(tid) {
+  S.tid = tid; S.turma = S.turmas.find(t => t.id == tid);
+  const r = await api('listar', { matricula: S.mat, turma_id: tid });
+  if (!r.ok) return toast(r.msg, 1);
+  const st = { novo: ['Iniciar', 'fa-play'], andamento: ['Continuar', 'fa-rotate-right'], concluido: ['Ver resultado', 'fa-chart-simple'] };
+  app(bannerHtml(esc(S.turma.nome), `Selecione o questionário${S.turma.professor ? ' · Prof. ' + esc(S.turma.professor) : ''}`) +
+    (S.turmas.length > 1 ? `<button onclick="pickTurma()" class="${C.g} mb-4">← Trocar de turma</button>` : '') +
+    (r.questionarios.length ? `<div class="grid sm:grid-cols-2 gap-4">${r.questionarios.map(q => `
+      <div class="${C.k} flex flex-col justify-between"><div><h3 class="font-bold text-lg">${esc(q.titulo)}</h3>
+        <p class="text-xs text-gray-500 mt-1">${q.total} pergunta(s)${q.status === 'andamento' ? ` · ${q.respondidas} respondida(s)` : ''}${q.nota != null ? ` · Nota <b class="text-[#CC092F]">${q.nota}</b>` : ''}</p></div>
+        <button onclick="openQ(${q.id})" class="${C.b} mt-4"><i class="fa-solid ${st[q.status][1]} mr-1"></i>${st[q.status][0]}</button></div>`).join('')}</div>`
+    : `<div class="${C.k} text-center text-gray-500 text-sm">Nenhum questionário disponível nesta turma.</div>`));
+}
+async function openQ(qid) {
+  S.qid = qid;
+  const r = await api('iniciar', { matricula: S.mat, turma_id: S.tid, questionario_id: qid });
+  if (!r.ok) return toast(r.msg, 1);
+  S.qt = r.questionario.titulo;
+  if (r.ja_finalizado) return r.mostrar_dashboard ? dash(r) : app(`<div class="${C.k} text-center"><div class="text-5xl">✅</div><h2 class="font-bold text-xl my-3 text-[#CC092F]">Prova já realizada!</h2><p class="text-gray-500 mb-4">Seu resultado foi registrado.</p><button onclick="openTurma(S.tid)" class="${C.b}">← Voltar</button></div>`);
+  Object.assign(P, { q: r.prova, cfg: r.config, resp: {}, pend: {}, i: 0 });
+  Object.entries(r.respostas || {}).forEach(([k, v]) => P.resp[+k] = v);
+  while (P.i < P.q.length - 1 && P.resp[P.i] !== undefined) P.i++;
+  pergunta();
+}
+function pergunta() {
+  const q = P.q[P.i], done = P.resp[P.i] !== undefined, cur = P.pend[P.i] ?? (done ? P.resp[P.i] : null);
+  const total = P.q.length, n = Object.keys(P.resp).length, pct = Math.round(n / total * 100);
+  const m = q.texto.match(/https?:\/\/\S+\.(?:png|jpe?g|gif|webp|svg)(\?\S*)?/i);
+  const txt = m ? q.texto.replace(m[0], '').trim() : q.texto;
+  app(`<div class="exam"><div class="${C.k} mb-4 !p-4"><div class="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+      <span>${esc(S.qt)}</span><span>Pergunta ${P.i + 1} de ${total} · ${n} respondida(s)</span></div>
+      <div class="h-2.5 rounded-full bg-gray-200 overflow-hidden"><div class="bar h-full bg-[#CC092F]" style="width:${pct}%"></div></div></div>
+    <div class="${C.k}"><div class="${m ? 'grid md:grid-cols-2 gap-6' : ''}">
+      ${m ? `<img src="${esc(m[0])}" class="rounded-xl border max-h-96 mx-auto object-contain" onerror="this.remove()">` : ''}
+      <div><h2 class="text-lg font-bold mb-4">${esc(txt)}</h2>
+      <div id="alts" class="space-y-2.5">${q.alternativas.map((a, i) => `<button id="a${i}" ${done ? 'disabled' : ''} onclick="pick(${i})"
+        class="w-full text-left p-3.5 rounded-xl border-2 text-sm transition ${cur === i ? 'border-[#CC092F] bg-red-50' : 'border-gray-200 hover:border-[#CC092F]/50'}">
+        <b class="text-[#CC092F] mr-1">${'ABCDEFGH'[i] || i + 1})</b>${esc(a)}</button>`).join('')}</div>
+      <div id="act" class="mt-4">${done ? '' : `<button id="ok" ${cur === null ? 'disabled' : ''} onclick="confirmar()" class="${C.b}">Confirmar resposta</button>`}</div>
+      <div id="fb" class="mt-3"></div><div id="nav" class="mt-4 flex gap-2 flex-wrap">${done ? nav() : ''}</div></div></div></div></div>`);
+}
+function nav() {
+  const last = P.i >= P.q.length - 1, fin = `<button onclick="finalizar()" class="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl px-4 py-2.5 text-sm"><i class="fa-solid fa-flag-checkered mr-1"></i>Finalizar prova</button>`;
+  if (!P.cfg.mostrar_nav) return last ? fin : '';
+  return (P.i > 0 && !P.cfg.bloquear_voltar ? `<button class="${C.g}" onclick="go(${P.i - 1})">← Anterior</button>` : '') +
+    (!last ? `<button class="${C.g}" onclick="go(${P.i + 1})">Próxima →</button>` : fin);
+}
+function go(i) { if (i < 0 || i >= P.q.length || (P.cfg.bloquear_voltar && i < P.i)) return; P.i = i; pergunta(); }
+function pick(i) {
+  if (P.resp[P.i] !== undefined) return; P.pend[P.i] = i;
+  P.q[P.i].alternativas.forEach((_, k) => $('a' + k).className = $('a' + k).className.replace(/border-\[#CC092F\] bg-red-50|border-gray-200 hover:border-\[#CC092F\]\/50/, k === i ? 'border-[#CC092F] bg-red-50' : 'border-gray-200 hover:border-[#CC092F]/50'));
+  $('ok').disabled = false;
+}
+async function confirmar() {
+  const i = P.pend[P.i]; if (i == null) return; $('ok').disabled = true;
+  const r = await api('responder', { matricula: S.mat, turma_id: S.tid, questionario_id: S.qid, qi: P.i, alt: i });
+  if (!r.ok) { $('ok').disabled = false; return toast(r.msg, 1); }
+  P.resp[P.i] = i; $('act').innerHTML = ''; const fb = r.feedback, last = P.i >= P.q.length - 1;
+  document.querySelectorAll('#alts button').forEach((b, k) => {
+    b.disabled = true;
+    if (fb) { if (k === fb.correta_idx) b.className = b.className.replace(/border-\S+( bg-red-50)?/, 'border-green-500 bg-green-50'); else if (k === i && !fb.acertou) b.className = b.className.replace(/border-\S+( bg-red-50)?/, 'border-red-500 bg-red-50'); }
+  });
+  if (fb) $('fb').innerHTML = fb.acertou ? `<div class="bg-green-50 text-green-700 rounded-xl p-3 text-sm">✅ <b>Correto!</b></div>`
+    : `<div class="bg-red-50 text-red-700 rounded-xl p-3 text-sm">❌ <b>Incorreto.</b> Resposta certa: <i>${esc(fb.correta_txt)}</i></div>`;
+  if (P.cfg.mostrar_nav) $('nav').innerHTML = nav();
+  else setTimeout(() => last ? finalizar() : go(P.i + 1), fb ? 2300 : 400);
+}
+async function finalizar() {
+  const falta = P.q.length - Object.keys(P.resp).length;
+  if (falta > 0 && !confirm(`Você ainda tem ${falta} pergunta(s) sem resposta. Finalizar assim mesmo?`)) return;
+  const r = await api('finalizar', { matricula: S.mat, turma_id: S.tid, questionario_id: S.qid });
+  if (!r.ok) return toast(r.msg, 1);
+  if (!r.mostrar_dashboard) { toast('Prova finalizada! Obrigado.'); return openTurma(S.tid); }
+  dash(r);
+}
+function dash(r) {
+  const cor = r.nota >= 7 ? '#16a34a' : r.nota >= 5 ? '#d97706' : '#CC092F', c = 2 * Math.PI * 42;
+  app(`<div class="${C.k} text-center"><span class="text-xs font-bold uppercase tracking-wider text-gray-400">${esc(S.qt)}</span>
+    <div class="relative w-40 h-40 mx-auto my-4"><svg viewBox="0 0 100 100" class="-rotate-90"><circle cx="50" cy="50" r="42" fill="none" stroke="#F3F4F6" stroke-width="11"/>
+    <circle cx="50" cy="50" r="42" fill="none" stroke="${cor}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${(c * r.nota / 10).toFixed(1)} ${c.toFixed(1)}"/></svg>
+    <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-4xl font-extrabold" style="color:${cor}">${r.nota}</span><span class="text-xs text-gray-400">de 10</span></div></div>
+    <p class="text-gray-600 text-sm"><b>${r.acertos}</b> acerto(s) de <b>${r.total}</b>${r.tempo ? ` · <i class="fa-regular fa-clock"></i> ${esc(r.tempo)}` : ''}</p>
+    <button onclick="openTurma(S.tid)" class="${C.b} mt-5">← Voltar aos questionários</button></div>` +
+    (r.erros.length ? `<div class="${C.k} mt-6"><h3 class="font-bold mb-3"><i class="fa-solid fa-circle-xmark text-[#CC092F] mr-1"></i>Perguntas para revisar (${r.erros.length})</h3>
+    <div class="space-y-3">${r.erros.map(e => `<div class="border border-gray-200 rounded-xl p-3 text-sm"><p class="font-semibold">${e.num}. ${esc(e.pergunta)}</p>
+      <p class="text-red-700 mt-1">Sua resposta: ${esc(e.sua_resp)}</p><p class="text-green-700">Correta: ${esc(e.correta)}</p></div>`).join('')}</div></div>`
+      : `<div class="${C.k} mt-6 text-center">🎉 <b>Parabéns, nenhum erro!</b></div>`));
+}
+
+// ====================== ADMIN ======================
+async function admin() {
+  const r = await api('estado'); if (!r.ok) return;
+  A.st = r; setWho(true); if (A.tid === undefined && r.turmas[0]) A.tid = r.turmas[0].id; render();
+}
+function tab(t) { A.tab = t; render(); }
+function render() {
+  const tabs = [['t', 'fa-layer-group', 'Turmas e Alunos'], ['q', 'fa-clipboard-question', 'Questionários'], ['r', 'fa-chart-column', 'Resultados']];
+  app(`<div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden"><div class="h-1.5 bg-gradient-to-r from-[#CC092F] to-[#9E0624]"></div>
+    <div class="p-5 flex flex-wrap items-center justify-between gap-3"><div><h1 class="text-2xl font-extrabold">Gestão de Avaliações</h1>
+    <p class="text-sm text-gray-500">${A.st.turmas.length} turma(s) · ${A.st.questionarios.length} questionário(s)</p></div>
+    <div class="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">${tabs.map(([k, i, n]) => `<button onclick="tab('${k}')" class="px-3.5 py-2 rounded-lg text-xs font-bold ${A.tab === k ? 'bg-[#CC092F] text-white' : 'text-gray-600 hover:bg-white'}"><i class="fa-solid ${i} mr-1"></i>${n}</button>`).join('')}</div></div></div>` +
+    ({ t: tTurmas, q: tQuest, r: tRes }[A.tab])());
+  if (A.tab === 'r') loadRes();
+}
+const lbl = (t, h) => `<label class="${C.l}">${t}</label>${h}`;
+
+// ── Turmas ──
+function tTurmas() {
+  const st = A.st, t = st.turmas.find(x => x.id == A.tid);
+  return `<div class="grid lg:grid-cols-3 gap-6"><div class="${C.k}"><h3 class="font-bold mb-3">Turmas</h3><div class="space-y-2">
+    ${st.turmas.map(x => `<button onclick="A.tid=${x.id};render()" class="w-full text-left p-3 rounded-xl border ${x.id == A.tid ? 'border-[#CC092F] bg-red-50' : 'border-gray-200 hover:bg-gray-50'}">
+    <b class="text-sm">${esc(x.nome)}</b><div class="text-xs text-gray-500">${x.alunos.length} aluno(s) · ${x.questionarios.length} questionário(s)</div></button>`).join('') || '<p class="text-sm text-gray-400">Nenhuma turma.</p>'}</div>
+    <button onclick="A.tid=null;render()" class="${C.b} w-full mt-3">+ Nova turma</button></div>
+    <div class="lg:col-span-2 space-y-6"><div class="${C.k}"><h3 class="font-bold">${t ? 'Editar turma' : 'Nova turma'}</h3>
+    ${lbl('Nome da turma', `<input id="tn" class="${C.i}" value="${esc(t?.nome)}">`)}${lbl('Curso', `<input id="tc" class="${C.i}" value="${esc(t?.curso)}">`)}${lbl('Professor', `<input id="tp" class="${C.i}" value="${esc(t?.professor)}">`)}
+    ${lbl('Questionários atribuídos', st.questionarios.map(q => `<label class="flex items-center gap-2 text-sm py-1"><input type="checkbox" class="accent-[#CC092F] tq" value="${q.id}" ${t?.questionarios.includes(q.id) ? 'checked' : ''}>${esc(q.titulo)} <span class="text-xs text-gray-400">(${q.total} perg.)</span></label>`).join('') || '<p class="text-xs text-gray-400">Crie um questionário na aba ao lado.</p>')}
+    <div class="flex gap-2 mt-4"><button onclick="saveT()" class="${C.b}">Salvar turma</button>${t ? `<button onclick="delT()" class="${C.g} !text-[#CC092F]">Excluir</button>` : ''}</div></div>
+    ${t ? `<div class="${C.k}"><h3 class="font-bold mb-1">Alunos (${t.alunos.length})</h3><p class="text-xs text-gray-500 mb-2">Cole uma linha por aluno: <code>MATRÍCULA [tab] NOME</code> (pode colar direto do Excel).</p>
+    <textarea id="imp" rows="4" class="${C.i}"></textarea><div class="flex gap-2 mt-2"><button onclick="imp('adicionar')" class="${C.b}">Adicionar</button><button onclick="imp('substituir')" class="${C.g}">Substituir lista</button></div>
+    <div class="mt-4 max-h-80 overflow-y-auto divide-y text-sm">${t.alunos.map(a => `<div class="flex items-center py-1.5"><span class="w-28 font-bold text-xs text-gray-500">${esc(a.matricula)}</span><span class="flex-1">${esc(a.nome)}</span>
+    <button onclick="rmAluno('${esc(a.matricula)}')" class="text-[#CC092F] px-2"><i class="fa-solid fa-trash-can"></i></button></div>`).join('')}</div></div>` : ''}</div></div>`;
+}
+async function done(r, reload = true) { r.ok ? toast(r.msg) : toast(r.msg, 1); if (r.ok && reload) await admin(); return r.ok; }
+async function saveT() {
+  const r = await api('turma_salvar', { turma_id: A.tid, nome: $('tn').value, curso: $('tc').value, professor: $('tp').value,
+    questionarios: [...document.querySelectorAll('.tq:checked')].map(c => +c.value) });
+  if (r.ok) A.tid = r.id; await done(r);
+}
+async function delT() { if (confirm('Excluir esta turma, seus alunos e resultados?')) { const r = await api('turma_excluir', { turma_id: A.tid }); A.tid = null; await done(r); } }
+async function imp(modo) {
+  const lista = $('imp').value.split(/\r?\n/).map(l => l.trim().split(/\t+|\s{2,}/)).filter(p => p.length >= 2 && p[0] && p[1] && p[0][0] !== '!').map(p => ({ m: p[0].trim(), n: p.slice(1).join(' ').trim() }));
+  if (modo === 'substituir' && !confirm('Alunos que não estiverem na lista serão removidos desta turma (com seus resultados). Continuar?')) return;
+  await done(await api('alunos_importar', { turma_id: A.tid, modo, lista }));
+}
+async function rmAluno(m) { if (confirm('Remover o aluno desta turma?')) await done(await api('aluno_remover', { turma_id: A.tid, matricula: m })); }
+
+// ── Questionários ──
+const CFG = [['modo_aleatorio_perguntas', 'Embaralhar perguntas'], ['modo_aleatorio_respostas', 'Embaralhar alternativas'], ['perguntas_por_aluno', 'Ordem própria por aluno'],
+  ['mostrar_resultado_por_q', 'Mostrar acerto/erro a cada pergunta'], ['mostrar_dashboard_final', 'Mostrar dashboard final'], ['bloquear_voltar', 'Bloquear voltar'], ['mostrar_nav', 'Navegação manual (Anterior/Próxima)']];
+function tQuest() {
+  return `<div class="${C.k} mb-6"><h3 class="font-bold mb-2">Novo questionário</h3><div class="flex gap-2"><input id="nq" class="${C.i}" placeholder="Título do questionário"><button onclick="newQ()" class="${C.b} whitespace-nowrap">+ Criar</button></div></div>
+  <div class="space-y-4">${A.st.questionarios.map(q => `<div class="${C.k}"><div class="flex flex-wrap justify-between gap-2 mb-3"><div><h3 class="font-bold text-lg">${esc(q.titulo)}</h3>
+    <p class="text-xs text-gray-500">${q.total} pergunta(s) · ${q.iniciados} iniciada(s) · ${q.concluidos} concluída(s)${q.arquivo ? ' · <i class="fa-regular fa-file-lines"></i> ' + esc(q.arquivo) : ''}</p></div>
+    <div class="flex gap-1.5 text-xs"><button class="${C.g} !py-1.5" onclick="renQ(${q.id})">Renomear</button><button class="${C.g} !py-1.5" onclick="verP(${q.id})">Ver perguntas</button>
+    <button class="${C.g} !py-1.5 !text-[#CC092F]" onclick="zerarP(${q.id})">Zerar perguntas</button><button class="${C.g} !py-1.5 !text-[#CC092F]" onclick="delQ(${q.id})">Excluir</button></div></div>
+    <div class="grid md:grid-cols-2 gap-5"><div class="bg-gray-50 rounded-xl p-4 border border-gray-200"><h4 class="text-xs font-bold uppercase text-gray-500 mb-2">Enviar perguntas (.txt)</h4>
+      <p class="text-[11px] text-gray-500 mb-2">Formato: <code>P) pergunta</code>, <code>.) errada</code>, <code>X) correta</code></p>
+      <select id="m${q.id}" class="${C.i} mb-2"><option value="substituir_manter">Substituir (manter resultados)</option><option value="substituir_apagar">Substituir (apagar resultados)</option><option value="adicionar">Adicionar às existentes</option></select>
+      <input type="file" accept=".txt,text/plain" onchange="upl(${q.id},this)" class="text-xs"></div>
+    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200"><h4 class="text-xs font-bold uppercase text-gray-500 mb-2">Configurações</h4>
+      ${CFG.map(([k, n]) => `<label class="flex items-center justify-between text-xs py-1 cursor-pointer">${n}<input type="checkbox" class="accent-[#CC092F] w-4 h-4" id="c${q.id}_${k}" ${q.config[k] ? 'checked' : ''}></label>`).join('')}
+      <label class="flex items-center justify-between text-xs py-1">Limite de perguntas (0 = todas)<input type="number" min="0" id="c${q.id}_lim" value="${q.config.limite_perguntas}" class="w-16 border rounded-lg px-2 py-1 text-xs"></label>
+      <button onclick="saveCfg(${q.id})" class="${C.b} !py-1.5 mt-2 text-xs">Salvar configurações</button></div></div></div>`).join('') || `<div class="${C.k} text-center text-gray-400 text-sm">Nenhum questionário criado.</div>`}</div>`;
+}
+async function newQ() { await done(await api('quest_salvar', { titulo: $('nq').value })); }
+async function renQ(id) { const t = prompt('Novo título:', A.st.questionarios.find(q => q.id == id).titulo); if (t) await done(await api('quest_salvar', { id, titulo: t })); }
+async function delQ(id) { if (confirm('Excluir o questionário, as perguntas e todos os resultados?')) await done(await api('quest_excluir', { id })); }
+async function zerarP(id) { if (confirm('Apagar todas as perguntas e resultados deste questionário?')) await done(await api('perguntas_zerar', { id })); }
+async function saveCfg(id) {
+  const config = { limite_perguntas: Math.max(0, +$(`c${id}_lim`).value || 0) };
+  CFG.forEach(([k]) => config[k] = $(`c${id}_${k}`).checked);
+  await done(await api('quest_config', { id, config }), false);
+}
+async function verP(id) {
+  const r = await api('perguntas_ver', { id }); if (!r.ok) return toast(r.msg, 1);
+  modal(`<h3 class="font-bold text-lg mb-3">${r.perguntas.length} pergunta(s)</h3><div class="max-h-[60vh] overflow-y-auto space-y-3 text-sm">${r.perguntas.map((p, n) => `<div class="border rounded-xl p-3"><p class="font-semibold">${n + 1}. ${esc(p.texto)}</p>
+    ${p.alternativas.map((a, i) => `<p class="${i === p.correta_idx ? 'text-green-700 font-semibold' : 'text-gray-600'}">${i === p.correta_idx ? '✔' : '•'} ${esc(a)}</p>`).join('')}</div>`).join('')}</div>`);
+}
+// Lê o TXT (UTF-8 ou Windows-1252) e converte P) / .) / X) em perguntas
+function parseTxt(txt) {
+  const out = []; let cur = null;
+  txt.replace(/^\uFEFF/, '').split(/\r?\n/).forEach(l => {
+    l = l.trim(); let m;
+    if (m = l.match(/^P\)\s*(.+)$/)) { cur && out.push(cur); cur = { texto: m[1], alternativas: [], correta_idx: null }; }
+    else if (cur && (m = l.match(/^\.\)\s*(.+)$/))) cur.alternativas.push(m[1]);
+    else if (cur && (m = l.match(/^X\)\s*(.+)$/))) { cur.correta_idx = cur.alternativas.length; cur.alternativas.push(m[1]); }
+  });
+  cur && out.push(cur);
+  const seen = new Set();
+  return out.filter(p => p.correta_idx !== null && p.alternativas.length >= 2).filter(p => { const k = p.texto.replace(/\s+/g, ' ').toLowerCase(); return !seen.has(k) && seen.add(k); });
+}
+async function upl(id, inp) {
+  const f = inp.files[0]; if (!f) return; inp.value = '';
+  if (f.size > 2 * 1024 * 1024) return toast('Arquivo muito grande (máx. 2 MB).', 1);
+  const buf = await f.arrayBuffer(); let txt;
+  try { txt = new TextDecoder('utf-8', { fatal: true }).decode(buf); } catch { txt = new TextDecoder('windows-1252').decode(buf); }
+  const perguntas = parseTxt(txt);
+  if (!perguntas.length) return toast('Nenhuma pergunta encontrada. Verifique o formato (P) / .) / X)).', 1);
+  const modo = $('m' + id).value;
+  if (modo === 'substituir_apagar' && !confirm('Os resultados anteriores deste questionário serão APAGADOS. Continuar?')) return;
+  await done(await api('perguntas_gravar', { id, modo, perguntas, arquivo: f.name }));
+}
+
+// ── Resultados ──
+function tRes() {
+  const ts = A.st.turmas; A.rt = A.rt && ts.find(t => t.id == A.rt) ? A.rt : ts[0]?.id;
+  const t = ts.find(x => x.id == A.rt), qs = A.st.questionarios.filter(q => t?.questionarios.includes(q.id));
+  A.rq = qs.find(q => q.id == A.rq) ? A.rq : qs[0]?.id;
+  return `<div class="${C.k}"><div class="grid sm:grid-cols-2 gap-3">
+    <div><label class="${C.l} !mt-0">Turma</label><select class="${C.i}" onchange="A.rt=+this.value;A.rq=null;render()">${ts.map(x => `<option value="${x.id}" ${x.id == A.rt ? 'selected' : ''}>${esc(x.nome)}</option>`).join('')}</select></div>
+    <div><label class="${C.l} !mt-0">Questionário</label><select class="${C.i}" onchange="A.rq=+this.value;render()">${qs.map(x => `<option value="${x.id}" ${x.id == A.rq ? 'selected' : ''}>${esc(x.titulo)}</option>`).join('') || '<option>— nenhum atribuído —</option>'}</select></div></div>
+    <div id="res" class="mt-5 text-sm text-gray-400">${A.rq ? 'Carregando...' : 'Atribua um questionário à turma na aba Turmas e Alunos.'}</div></div>`;
+}
+async function loadRes() {
+  if (!A.rt || !A.rq) return;
+  const r = await api('resultados', { turma_id: A.rt, questionario_id: A.rq }); if (!r.ok) return toast(r.msg, 1);
+  const f = r.resultados.filter(x => x.finalizado), notas = f.map(x => +x.nota), kpi = (n, v) => `<div class="bg-gray-50 border rounded-xl p-3 text-center"><div class="text-2xl font-extrabold text-[#CC092F]">${v}</div><div class="text-[11px] text-gray-500">${n}</div></div>`;
+  $('res').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">${kpi('Média', f.length ? (notas.reduce((a, b) => a + b, 0) / f.length).toFixed(1) : '–')}${kpi('Maior nota', f.length ? Math.max(...notas) : '–')}${kpi('Menor nota', f.length ? Math.min(...notas) : '–')}${kpi('Finalizaram', f.length + '/' + r.resultados.length)}</div>
+    ${r.top_erros.length ? `<h4 class="font-bold text-gray-800 mb-2"><i class="fa-solid fa-triangle-exclamation text-[#CC092F] mr-1"></i>Perguntas mais erradas</h4><div class="mb-5 divide-y">${r.top_erros.map((e, i) => `<div class="flex gap-3 py-2 text-sm"><b class="text-[#CC092F]">${i + 1}º</b><span class="flex-1">${esc(e.pergunta)}</span><b class="text-[#CC092F] whitespace-nowrap">${e.erros}/${e.total} (${e.pct}%)</b></div>`).join('')}</div>` : ''}
+    <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-gray-800">Alunos</h4><button class="${C.g} !py-1.5 text-xs !text-[#CC092F]" onclick="wipe('')">Apagar todas as pontuações</button></div>
+    <div class="divide-y text-sm">${r.resultados.map(x => `<div class="flex items-center gap-3 py-2 ${x.finalizado ? '' : 'text-gray-400'}"><span class="w-24 text-xs font-bold">${esc(x.matricula)}</span><span class="flex-1">${esc(x.nome)}</span>
+    <div class="w-28 h-3 rounded-full bg-gray-200 overflow-hidden hidden sm:block"><div class="h-full bg-[#CC092F]" style="width:${x.nota * 10}%"></div></div>
+    <span class="w-24 text-right text-xs">${x.finalizado ? `<b class="text-green-600">${x.acertos}✔</b> <b class="text-[#CC092F]">${x.total - x.acertos}✘</b>` : x.iniciado ? 'em andamento' : 'pendente'}</span>
+    <b class="w-10 text-right text-[#CC092F]">${x.finalizado ? x.nota : ''}</b><span class="w-20 text-right text-xs">${esc(x.tempo)}</span>
+    <button onclick="wipe('${esc(x.matricula)}')" class="text-[#CC092F] px-1"><i class="fa-solid fa-trash-can"></i></button></div>`).join('')}</div>
+    <div class="mt-6 pt-4 border-t text-right"><button onclick="zerar()" class="bg-[#7f0000] hover:bg-black text-white text-xs font-bold rounded-xl px-4 py-2"><i class="fa-solid fa-bomb mr-1"></i>Zerar sistema</button></div>`;
+}
+async function wipe(m) {
+  if (!confirm(m ? 'Apagar o histórico deste aluno neste questionário?' : 'Apagar as pontuações de toda a turma neste questionário?')) return;
+  if (await done(await api('apagar_pontuacoes', { turma_id: A.rt, questionario_id: A.rq, matricula: m }), false)) loadRes();
+}
+async function zerar() { if (prompt('Isto apaga TODOS os dados. Digite ZERAR para confirmar:') === 'ZERAR') { A.tid = A.rt = A.rq = undefined; await done(await api('zerar_sistema')); } }
+
+login();
+</script>
+</body>
+</html>
