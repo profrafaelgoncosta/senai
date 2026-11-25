@@ -16,6 +16,20 @@ body{background:#E8E8E8;color:#1F2937}
 .mask{-webkit-text-security:disc;text-security:disc}
 .exam,.exam *{user-select:none;-webkit-user-select:none}
 .bar{transition:width .5s}
+.ttl{font-size:1.05rem;font-weight:700;color:#1F2937;border-bottom:2px solid #d5d5d5;padding-bottom:10px;margin-bottom:20px}
+.dtop{display:grid;grid-template-columns:auto 1fr;gap:0 32px;align-items:center}
+.dleft{display:flex;flex-direction:column;align-items:center;min-width:200px}
+.dnota{font-size:5rem;font-weight:800;line-height:1;margin:4px 0 2px}
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.dst{background:#f0f0f0;border-radius:8px;padding:14px 10px;text-align:center}.dst .val{font-size:1.5rem;font-weight:800}.dst .lbl{font-size:.72rem;color:#555;margin-top:3px}
+@media(max-width:640px){.dtop{grid-template-columns:1fr;justify-items:center;text-align:center}.dtop>div:last-child{width:100%}.dstats{grid-template-columns:1fr 1fr}}
+.eitem{background:#fdf2f2;border-left:4px solid #CC092F;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:10px}
+.star{font-size:min(1.35rem,17cqw);line-height:1}.star.cheia{color:#f4c430;text-shadow:0 1px 4px rgba(0,0,0,.15)}.star.vazia{color:#ddd}
+.star.meia{position:relative;display:inline-block;color:#ddd}.star.meia::before{content:'★';color:#f4c430;position:absolute;left:0;top:0;width:50%;overflow:hidden}
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998;align-items:center;justify-content:center;cursor:zoom-out}#lb.open{display:flex}
+#lb img{max-width:92vw;max-height:90vh;border-radius:8px;background:#fff}
+#lb button{position:absolute;top:16px;right:20px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:1.2rem;cursor:pointer}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans">
@@ -31,6 +45,7 @@ body{background:#E8E8E8;color:#1F2937}
   <div class="h-1 bg-[#CC092F] w-full"></div>
 </header>
 <div id="toasts" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center space-y-2 pointer-events-none max-w-[90vw]"></div>
+<div id="lb" onclick="fechaLb()"><button onclick="fechaLb()" title="Fechar (ESC)">✕</button><img id="lbi" src="" alt="Imagem ampliada" onclick="event.stopPropagation()"></div>
 <main id="app" class="flex-grow w-full max-w-6xl mx-auto px-4 py-8"></main>
 <footer class="bg-white border-t border-gray-200 py-5 text-center text-xs text-gray-500 mt-12">© SENAI - Serviço Nacional de Aprendizagem Industrial | Sistema de Avaliação Online</footer>
 
@@ -117,6 +132,7 @@ async function openTurma(tid) {
   S.tid = tid; S.turma = S.turmas.find(t => t.id == tid);
   const r = await api('listar', { matricula: S.mat, turma_id: tid });
   if (!r.ok) return toast(r.msg, 1);
+  S.nq = r.questionarios.length;
   const st = { novo: ['Iniciar', 'fa-play'], andamento: ['Continuar', 'fa-rotate-right'], concluido: ['Ver resultado', 'fa-chart-simple'] };
   app(bannerHtml(esc(S.turma.nome), `Selecione o questionário${S.turma.professor ? ' · Prof. ' + esc(S.turma.professor) : ''}`) +
     (S.turmas.length > 1 ? `<button onclick="pickTurma()" class="${C.g} mb-4">← Trocar de turma</button>` : '') +
@@ -131,8 +147,8 @@ async function openQ(qid) {
   const r = await api('iniciar', { matricula: S.mat, turma_id: S.tid, questionario_id: qid });
   if (!r.ok) return toast(r.msg, 1);
   S.qt = r.questionario.titulo;
-  if (r.ja_finalizado) return r.mostrar_dashboard ? dash(r) : app(`<div class="${C.k} text-center"><div class="text-5xl">✅</div><h2 class="font-bold text-xl my-3 text-[#CC092F]">Prova já realizada!</h2><p class="text-gray-500 mb-4">Seu resultado foi registrado.</p><button onclick="openTurma(S.tid)" class="${C.b}">← Voltar</button></div>`);
-  Object.assign(P, { q: r.prova, cfg: r.config, resp: {}, pend: {}, i: 0 });
+  if (r.ja_finalizado) return r.mostrar_dashboard ? dash({ ...r, tempo: fmtT(r.tempo) }, true) : app(`<div class="${C.k} text-center"><div class="text-5xl">✅</div><h2 class="font-bold text-xl my-3 text-[#CC092F]">Prova já realizada!</h2><p class="text-gray-500 mb-4">Seu resultado foi registrado.</p><button onclick="openTurma(S.tid)" class="${C.b}">← Voltar</button></div>`);
+  P.t0 = Date.now(); Object.assign(P, { q: r.prova, cfg: r.config, resp: {}, pend: {}, i: 0 });
   Object.entries(r.respostas || {}).forEach(([k, v]) => P.resp[+k] = v);
   while (P.i < P.q.length - 1 && P.resp[P.i] !== undefined) P.i++;
   pergunta();
@@ -146,7 +162,7 @@ function pergunta() {
       <span>${esc(S.qt)}</span><span>Pergunta ${P.i + 1} de ${total} · ${n} respondida(s)</span></div>
       <div class="h-2.5 rounded-full bg-gray-200 overflow-hidden"><div class="bar h-full bg-[#CC092F]" style="width:${pct}%"></div></div></div>
     <div class="${C.k}"><div class="${m ? 'grid md:grid-cols-2 gap-6' : ''}">
-      ${m ? `<img src="${esc(m[0])}" class="rounded-xl border max-h-96 mx-auto object-contain" onerror="this.remove()">` : ''}
+      ${m ? `<img src="${esc(m[0])}" onclick="lightbox(this.src)" title="Clique para ampliar" class="rounded-xl border max-h-96 mx-auto object-contain cursor-zoom-in" onerror="this.remove()">` : ''}
       <div><h2 class="text-lg font-bold mb-4">${esc(txt)}</h2>
       <div id="alts" class="space-y-2.5">${q.alternativas.map((a, i) => `<button id="a${i}" ${done ? 'disabled' : ''} onclick="pick(${i})"
         class="w-full text-left p-3.5 rounded-xl border-2 text-sm transition ${cur === i ? 'border-[#CC092F] bg-red-50' : 'border-gray-200 hover:border-[#CC092F]/50'}">
@@ -186,20 +202,77 @@ async function finalizar() {
   const r = await api('finalizar', { matricula: S.mat, turma_id: S.tid, questionario_id: S.qid });
   if (!r.ok) return toast(r.msg, 1);
   if (!r.mostrar_dashboard) { toast('Prova finalizada! Obrigado.'); return openTurma(S.tid); }
-  dash(r);
+  const s = Math.floor((Date.now() - P.t0) / 1000), p = n => String(n).padStart(2, '0');
+  dash({ ...r, tempo: P.t0 ? (s >= 3600 ? `${Math.floor(s / 3600)}h ${p(Math.floor(s % 3600 / 60))}m ${p(s % 60)}s` : `${p(Math.floor(s / 60))}m ${p(s % 60)}s`) : fmtT(r.tempo) }, false);
 }
-function dash(r) {
-  const cor = r.nota >= 7 ? '#16a34a' : r.nota >= 5 ? '#d97706' : '#CC092F', c = 2 * Math.PI * 42;
-  app(`<div class="${C.k} text-center"><span class="text-xs font-bold uppercase tracking-wider text-gray-400">${esc(S.qt)}</span>
-    <div class="relative w-40 h-40 mx-auto my-4"><svg viewBox="0 0 100 100" class="-rotate-90"><circle cx="50" cy="50" r="42" fill="none" stroke="#F3F4F6" stroke-width="11"/>
-    <circle cx="50" cy="50" r="42" fill="none" stroke="${cor}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${(c * r.nota / 10).toFixed(1)} ${c.toFixed(1)}"/></svg>
-    <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-4xl font-extrabold" style="color:${cor}">${r.nota}</span><span class="text-xs text-gray-400">de 10</span></div></div>
-    <p class="text-gray-600 text-sm"><b>${r.acertos}</b> acerto(s) de <b>${r.total}</b>${r.tempo ? ` · <i class="fa-regular fa-clock"></i> ${esc(r.tempo)}` : ''}</p>
-    <button onclick="openTurma(S.tid)" class="${C.b} mt-5">← Voltar aos questionários</button></div>` +
-    (r.erros.length ? `<div class="${C.k} mt-6"><h3 class="font-bold mb-3"><i class="fa-solid fa-circle-xmark text-[#CC092F] mr-1"></i>Perguntas para revisar (${r.erros.length})</h3>
-    <div class="space-y-3">${r.erros.map(e => `<div class="border border-gray-200 rounded-xl p-3 text-sm"><p class="font-semibold">${e.num}. ${esc(e.pergunta)}</p>
-      <p class="text-red-700 mt-1">Sua resposta: ${esc(e.sua_resp)}</p><p class="text-green-700">Correta: ${esc(e.correta)}</p></div>`).join('')}</div></div>`
-      : `<div class="${C.k} mt-6 text-center">🎉 <b>Parabéns, nenhum erro!</b></div>`));
+// ── Dashboard final (fiel ao original) ──
+const fmtT = s => { if (!/^\d+:\d\d:\d\d$/.test(s || '')) return s || ''; const [h, m, x] = s.split(':').map(Number), p = n => String(n).padStart(2, '0'); return h > 0 ? `${h}h ${p(m)}m ${p(x)}s` : `${p(m)}m ${p(x)}s`; };
+function estrelas(a, t) {
+  if (!t) return ''; const v = Math.min(5, Math.max(0, a / t * 5));
+  return [1, 2, 3, 4, 5].map(i => `<span class="star ${v >= i - .25 ? 'cheia' : v >= i - .75 ? 'meia' : 'vazia'}">★</span>`).join('');
+}
+function extrairImg(t) { const m = t.match(/https?:\/\/\S+\.(?:png|jpe?g|gif|webp|svg)(\?\S*)?/i); return m ? { texto: t.replace(m[0], '').trim(), img: m[0] } : { texto: t, img: null }; }
+function lightbox(src) { $('lbi').src = src; $('lb').classList.add('open'); }
+function fechaLb() { $('lb').classList.remove('open'); $('lbi').src = ''; }
+document.addEventListener('keydown', e => e.key === 'Escape' && fechaLb());
+
+function dash(r, ja) {
+  const T = S.turma || {}, nota = parseFloat(r.nota) || 0, pct = r.total > 0 ? r.acertos / r.total : 0, erros = r.total - r.acertos,
+    txErro = r.total > 0 ? Math.round(erros / r.total * 100) : 0, txOk = Math.round(pct * 100), ok = nota >= 6,
+    cor = ok ? '#27ae60' : '#CC092F', circ = 266.9, tempo = r.tempo || '—';
+  const voltar = S.nq > 1 ? '← Outros questionários' : S.turmas.length > 1 ? '← Trocar de turma' : '';
+  app(`<div class="${C.k}"><div class="ttl">🏁 Resultado da Prova</div>
+    <div class="dtop"><div class="dleft"><svg width="190" height="105" viewBox="0 0 200 110"><path d="M 15 95 A 85 85 0 0 1 185 95" fill="none" stroke="#e0e0e0" stroke-width="15" stroke-linecap="round"/>
+      <path id="garc" d="M 15 95 A 85 85 0 0 1 185 95" fill="none" stroke="${cor}" stroke-width="15" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" style="transition:stroke-dashoffset 1.2s ease-out"/>
+      <text x="100" y="88" text-anchor="middle" font-size="20" font-weight="800" fill="${cor}">${txOk}%</text></svg>
+      <div class="dnota" style="color:${cor}">${nota.toFixed(1).replace('.', ',')}</div><div class="text-xs text-gray-500 mt-0.5">nota final</div></div>
+    <div class="min-w-0"><div class="text-xl font-semibold text-gray-600">👤 ${esc(S.nome)}${ja ? '  —  Prova já realizada anteriormente' : ''}</div>
+      <div class="text-xs text-gray-400 mb-1.5">${esc([T.curso || T.nome, S.qt, T.professor ? 'Prof. ' + T.professor : ''].filter(Boolean).join(' · '))}</div>
+      <div class="dstats"><div class="dst"><div class="val" style="color:#27ae60">${r.acertos}</div><div class="lbl">✅ Acertos</div></div>
+      <div class="dst"><div class="val" style="color:#CC092F">${erros}</div><div class="lbl">❌ Erros — ${txErro}%</div></div>
+      <div class="dst"><div class="val" style="color:#555;font-size:${tempo.length > 7 ? '1.1rem' : '1.5rem'}">${esc(tempo)}</div><div class="lbl">⏱ Tempo total</div></div>
+      <div class="dst" style="container-type:inline-size"><div class="whitespace-nowrap leading-snug">${estrelas(r.acertos, r.total)}</div><div class="lbl">⭐ Performance</div></div></div></div></div></div>` +
+    (r.erros.length ? `<div class="${C.k} mt-6"><div class="ttl">❌ Perguntas que Você Errou</div>${r.erros.map(e => { const x = extrairImg(e.pergunta);
+      return `<div class="eitem"><div class="text-xs font-bold text-[#CC092F] mb-0.5">Questão ${e.num}</div>
+      <div class="font-semibold text-sm mb-2">${esc(x.texto)}${x.img ? ` <span class="cursor-zoom-in select-none" title="Ver imagem da questão" onclick="lightbox(this.dataset.u)" data-u="${esc(x.img)}">📷</span>` : ''}</div>
+      <div class="text-sm text-gray-500">❌ Sua resposta: ${esc(e.sua_resp)}</div><div class="text-sm font-semibold text-[#27ae60]">✅ Resposta correta: ${esc(e.correta)}</div></div>`; }).join('')}</div>`
+    : r.total > 0 ? `<div class="${C.k} mt-6"><div class="ttl">🏆 Desempenho Perfeito!</div><p class="text-[#27ae60] font-semibold">Parabéns! Você acertou todas as questões! 🎉</p></div>` : '') +
+    `<div class="text-center mt-4">${voltar ? `<button class="${C.b} mr-2" onclick="${S.nq > 1 ? 'openTurma(S.tid)' : 'pickTurma()'}">${voltar}</button>` : ''}<button class="${C.g}" onclick="logout()">↩ Sair do Sistema</button></div>`);
+  setTimeout(() => { const g = $('garc'); if (g) g.style.strokeDashoffset = circ - circ * pct; }, 80);
+  if (r.total > 0 && r.acertos === r.total) { confete(); aplausos(); }
+}
+
+// Confete em canvas (sem bibliotecas), ~6 explosões espaçadas
+function confete(dur = 4500) {
+  $('cfc')?.remove(); const cv = document.createElement('canvas'); cv.id = 'cfc';
+  cv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999'; document.body.appendChild(cv);
+  const x = cv.getContext('2d'), cores = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#1abc9c']; let ps = [];
+  const fit = () => { cv.width = innerWidth; cv.height = innerHeight; }; fit(); addEventListener('resize', fit);
+  const boom = (fx, fy, n) => { for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, v = 4 + Math.random() * 9;
+    ps.push({ x: fx * cv.width, y: fy * cv.height, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 3, g: .18 + Math.random() * .08, t: 5 + Math.random() * 5, c: cores[i % 7],
+      r: Math.random() * 6.283, vr: (Math.random() - .5) * .3, l: 0, m: 120 + Math.random() * 70, q: Math.random() < .5 }); } };
+  const tm = [[.5, .35, 150], [.18, .3, 100], [.82, .3, 100], [.35, .5, 80], [.65, .5, 80], [.5, .2, 110]].map((o, i) => setTimeout(() => boom(...o), i * 480));
+  const t0 = performance.now();
+  (function loop() {
+    x.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => { p.vx *= .995; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.l++;
+      x.save(); x.globalAlpha = Math.max(0, 1 - p.l / p.m); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c;
+      if (p.q) x.fillRect(-p.t / 2, -p.t / 2, p.t, p.t * .6); else { x.beginPath(); x.arc(0, 0, p.t / 2, 0, 6.283); x.fill(); } x.restore(); });
+    ps = ps.filter(p => p.l < p.m && p.y < cv.height + 40);
+    if (performance.now() - t0 < dur || ps.length) requestAnimationFrame(loop); else { tm.forEach(clearTimeout); removeEventListener('resize', fit); cv.remove(); }
+  })();
+}
+// Aplausos sintetizados (Web Audio) — sem arquivo de áudio externo
+function aplausos() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)(), t0 = ac.currentTime, N = 90;
+    for (let i = 0; i < N; i++) {
+      const pr = i / N, t = t0 + pr * 3.2 + (Math.random() - .5) * .03, d = .06 + Math.random() * .03, len = Math.floor(ac.sampleRate * d);
+      const buf = ac.createBuffer(1, len, ac.sampleRate), ch = buf.getChannelData(0); for (let k = 0; k < len; k++) ch[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 2);
+      const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1200 + Math.random() * 1800; f.Q.value = .7;
+      g.gain.value = .05 + Math.sin(pr * Math.PI) * .18; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t); s.stop(t + d);
+    }
+  } catch (e) { }
 }
 
 // ====================== ADMIN ======================
